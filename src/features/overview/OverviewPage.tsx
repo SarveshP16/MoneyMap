@@ -68,9 +68,9 @@ export function OverviewPage() {
 
       <div className="px-5 py-6 sm:px-8">
         {filterActive && (
-          <div className="mb-5 flex items-center justify-between rounded-lg border border-amber/30 bg-amber-soft/40 px-4 py-2.5 text-sm text-ink-bright">
+          <div className="mb-5 flex items-center justify-between rounded-lg border border-verdigris/30 bg-verdigris-soft/40 px-4 py-2.5 text-sm text-ink-bright">
             <span>Totals reflect the active filter</span>
-            <button onClick={clearFilter} className="font-medium text-amber hover:text-amber/80">
+            <button onClick={clearFilter} className="font-medium text-verdigris hover:text-verdigris/80">
               Clear filter
             </button>
           </div>
@@ -100,6 +100,7 @@ export function OverviewPage() {
               label={currency.isAustralian ? 'Income (this FY)' : 'Income (this year)'}
               value={totalIncomeForCurrentFinancialYear(incomeRecords, currency.isAustralian)}
               format={fmt}
+              tone="emerald"
               to="/income"
             />
           </div>
@@ -113,6 +114,7 @@ export function OverviewPage() {
             label="Subscriptions & bills / mo"
             value={monthlyTotal(subscriptions)}
             format={fmt}
+            tone="brass"
             to="/subscriptions"
           />
         </div>
@@ -123,7 +125,7 @@ export function OverviewPage() {
           <div>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-display text-lg font-semibold text-ink-bright">Recent activity</h2>
-              <button onClick={() => navigate('/transactions')} className="text-sm text-amber hover:text-amber/80">
+              <button onClick={() => navigate('/transactions')} className="text-sm text-verdigris hover:text-verdigris/80">
                 View all
               </button>
             </div>

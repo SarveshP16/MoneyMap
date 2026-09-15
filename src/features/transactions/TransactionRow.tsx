@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { CheckCircle2, CreditCard, Trash2 } from 'lucide-react';
+import { EditHint } from '../../components/ui/EditHint';
 import { currencyOf, formatCurrency } from '../../lib/currency';
 import { formatRelativeDate } from '../../lib/dates';
 import type { Transaction } from '../../lib/types';
@@ -49,7 +50,7 @@ export function TransactionRow({
       exit={{ opacity: 0, x: 24 }}
       transition={{ type: 'spring', stiffness: 400, damping: 34 }}
       onClick={onClick}
-      className="group flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-panel p-3.5 transition-colors hover:border-amber/30"
+      className="ledger-tab group flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-panel p-3.5 transition-colors hover:border-verdigris/30"
     >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-ink-bright">{title}</p>
@@ -89,6 +90,7 @@ export function TransactionRow({
         <span className="figure-sans text-sm font-semibold text-ink-bright">
           {formatCurrency(transaction.amount, currency)}
         </span>
+        <EditHint />
         <button
           onClick={handleDelete}
           className="rounded-md p-1.5 text-ink-faint opacity-0 transition-opacity hover:bg-coral-soft hover:text-coral group-hover:opacity-100"

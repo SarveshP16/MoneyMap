@@ -46,7 +46,7 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
                   className={({ isActive }) =>
                     `flex items-center gap-3 rounded-lg border-l-2 px-3 py-2.5 text-sm ${
                       isActive
-                        ? 'border-amber bg-panel text-ink-bright'
+                        ? 'border-verdigris bg-panel text-ink-bright'
                         : 'border-transparent text-ink-muted'
                     }`
                   }

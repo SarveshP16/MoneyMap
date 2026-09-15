@@ -26,14 +26,14 @@ export function Sidebar() {
             className={({ isActive }) =>
               `group flex items-center gap-3 rounded-lg border-l-2 px-3 py-2.5 text-sm transition-colors ${
                 isActive
-                  ? 'border-amber bg-panel text-ink-bright'
+                  ? 'border-verdigris bg-panel text-ink-bright'
                   : 'border-transparent text-ink-muted hover:border-line hover:bg-panel/60 hover:text-ink-bright'
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <item.icon size={17} className={isActive ? 'text-amber' : 'text-ink-faint group-hover:text-ink-muted'} />
+                <item.icon size={17} className={isActive ? 'text-verdigris' : 'text-ink-faint group-hover:text-ink-muted'} />
                 {item.label}
               </>
             )}

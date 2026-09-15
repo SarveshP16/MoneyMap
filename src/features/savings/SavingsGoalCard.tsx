@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Minus, Plus } from 'lucide-react';
+import { EditHint } from '../../components/ui/EditHint';
 import { Trail } from '../../components/ui/Trail';
 import { currencyOf, formatCurrency } from '../../lib/currency';
 import type { SavingsGoal } from '../../lib/types';
@@ -16,16 +17,21 @@ export function SavingsGoalCard({ goal, onClick }: { goal: SavingsGoal; onClick:
   const reached = goal.targetAmount > 0 && goal.currentAmount >= goal.targetAmount;
 
   return (
-    <motion.div layout className="flex flex-col gap-2.5 rounded-xl border border-line bg-panel p-4">
+    <motion.div layout className="ledger-tab flex flex-col gap-2.5 rounded-xl border border-line bg-panel p-4">
       <button type="button" onClick={onClick} className="flex flex-col gap-2.5 text-left">
         <div className="flex items-center justify-between gap-3">
           <span className="text-sm font-medium text-ink-bright">{goal.name}</span>
-          <span className={`figure-sans text-sm ${reached ? 'font-semibold text-emerald' : 'text-ink-muted'}`}>
-            {formatCurrency(goal.currentAmount, currency)} / {formatCurrency(goal.targetAmount, currency)}
-          </span>
+          <div className="flex shrink-0 items-center gap-2.5">
+            <span className={`figure-sans text-sm ${reached ? 'font-semibold text-emerald' : 'text-ink-muted'}`}>
+              {formatCurrency(goal.currentAmount, currency)} / {formatCurrency(goal.targetAmount, currency)}
+            </span>
+            <EditHint />
+          </div>
         </div>
-        {goal.bankAccount && <p className="text-xs text-ink-faint">{goal.bankAccount}</p>}
-        {progress != null && <Trail progress={progress} tone={reached ? 'emerald' : 'amber'} />}
+        {goal.bankAccount && (
+          <span className="w-fit rounded-full bg-brass-soft px-2 py-0.5 text-xs font-medium text-brass">{goal.bankAccount}</span>
+        )}
+        {progress != null && <Trail progress={progress} tone={reached ? 'emerald' : 'verdigris'} />}
       </button>
 
       <div className="flex gap-2 pt-0.5">

@@ -43,7 +43,7 @@ export function ReconciliationBanner({ onViewMoved }: { onViewMoved: () => void 
         <button onClick={onViewMoved} className="text-ink-muted hover:text-ink-bright">
           View only these
         </button>
-        <button onClick={clearAll} className="text-amber hover:text-amber/80">
+        <button onClick={clearAll} className="text-verdigris hover:text-verdigris/80">
           Clear all
         </button>
       </div>

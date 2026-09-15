@@ -17,11 +17,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = join(__dirname, '..', 'public', 'icons');
 mkdirSync(OUT_DIR, { recursive: true });
 
-// Brand colors — must match src/index.css's --color-ink / --color-amber
+// Brand colors — must match src/index.css's --color-ink / --color-verdigris
 // (dark theme values; icons are static files so they can't follow the
 // light/dark toggle, and dark-on-brand is the app's primary identity).
 const INK = [0x0d, 0x13, 0x21];
-const AMBER = [0xe8, 0xa3, 0x3d];
+const VERDIGRIS = [0x4f, 0xa0, 0x8f];
 
 function blend(bg, fg, alpha) {
   return [
@@ -83,8 +83,8 @@ function renderIcon(size) {
       const dist = Math.hypot(fx, fy);
 
       let color = INK;
-      if (Math.abs(dist - ringRadius) <= ringStroke / 2) color = blend(INK, AMBER, 0.45);
-      if (pointInPolygon(fx, fy, sparkle)) color = AMBER;
+      if (Math.abs(dist - ringRadius) <= ringStroke / 2) color = blend(INK, VERDIGRIS, 0.45);
+      if (pointInPolygon(fx, fy, sparkle)) color = VERDIGRIS;
       if (dist <= dotRadius) color = INK;
 
       const i = (y * workingSize + x) * 3;

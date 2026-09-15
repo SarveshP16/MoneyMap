@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { EditHint } from '../../components/ui/EditHint';
 import { Trail } from '../../components/ui/Trail';
 import { currencyOf, formatCurrency } from '../../lib/currency';
 import { budgetPeriodLabel, type Category } from '../../lib/types';
@@ -24,18 +25,27 @@ export function CategoryCard({
       layout
       onClick={onClick}
       whileHover={{ y: -2 }}
-      className="flex w-full flex-col gap-2.5 rounded-xl border border-line bg-panel p-4 text-left transition-colors hover:border-amber/30"
+      className="ledger-tab flex w-full flex-col gap-2.5 rounded-xl border border-line bg-panel p-4 text-left transition-colors hover:border-verdigris/30"
     >
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-medium text-ink-bright">{category.name}</span>
-        <span className={`figure-sans text-sm ${isOverBudget ? 'font-semibold text-coral' : 'text-ink-muted'}`}>
-          {budget != null
-            ? `${formatCurrency(spent, currency)} / ${formatCurrency(budget, currency)}`
-            : formatCurrency(spent, currency)}
-        </span>
+        <div className="flex shrink-0 items-center gap-2.5">
+          <span className={`figure-sans text-sm ${isOverBudget ? 'font-semibold text-coral' : 'text-ink-muted'}`}>
+            {budget != null
+              ? `${formatCurrency(spent, currency)} / ${formatCurrency(budget, currency)}`
+              : formatCurrency(spent, currency)}
+          </span>
+          <EditHint />
+        </div>
       </div>
-      <p className="text-xs text-ink-faint">{budget != null ? `${budgetPeriodLabel[category.period]} budget` : 'No budget set'}</p>
-      {progress != null && <Trail progress={progress} tone={isOverBudget ? 'coral' : 'amber'} />}
+      {budget != null ? (
+        <span className="w-fit rounded-full bg-brass-soft px-2 py-0.5 text-xs font-medium text-brass">
+          {budgetPeriodLabel[category.period]} budget
+        </span>
+      ) : (
+        <p className="text-xs text-ink-faint">No budget set</p>
+      )}
+      {progress != null && <Trail progress={progress} tone={isOverBudget ? 'coral' : 'verdigris'} />}
     </motion.button>
   );
 }

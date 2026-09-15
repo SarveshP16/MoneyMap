@@ -108,7 +108,7 @@ export function IncomeForm({
                   type="button"
                   onClick={() => setIncomeType(incomeType === type ? undefined : type)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                    incomeType === type ? 'bg-amber text-ink-on-parchment' : 'border border-line text-ink-muted'
+                    incomeType === type ? 'bg-verdigris text-ink-on-parchment' : 'border border-line text-ink-muted'
                   }`}
                 >
                   {incomeTypeLabel[type]}

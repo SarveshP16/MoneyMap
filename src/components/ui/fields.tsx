@@ -10,7 +10,7 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 }
 
 const inputClasses =
-  'w-full rounded-lg border border-line bg-ink-soft px-3 py-2.5 text-sm text-ink-bright placeholder:text-ink-faint outline-none transition-colors focus:border-amber';
+  'w-full rounded-lg border border-line bg-ink-soft px-3 py-2.5 text-sm text-ink-bright placeholder:text-ink-faint outline-none transition-colors focus:border-verdigris';
 
 export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${inputClasses} ${props.className ?? ''}`} />;
@@ -68,7 +68,7 @@ export function Segmented<T extends string>({
           type="button"
           onClick={() => onChange(opt)}
           className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
-            value === opt ? 'bg-amber text-ink-on-parchment' : 'text-ink-muted hover:text-ink-bright'
+            value === opt ? 'bg-verdigris text-ink-on-parchment' : 'text-ink-muted hover:text-ink-bright'
           }`}
         >
           {labels[opt]}
@@ -100,7 +100,7 @@ export function Toggle({
         {description && <span className="block text-xs text-ink-faint">{description}</span>}
       </span>
       <span
-        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${checked ? 'bg-amber' : 'bg-line'}`}
+        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${checked ? 'bg-verdigris' : 'bg-line'}`}
       >
         <span
           className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-ink transition-transform ${
