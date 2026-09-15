@@ -38,6 +38,40 @@
   --color-coral-soft: #402322;
 }
 
+/* Light mode — the same chart-room, lit by day instead of by lamp: a pale
+   cool-gray page (not a warm cream — that plus a serif display is the
+   single most recognizable "AI-generated" tell, and we're already using
+   Fraunces) with white cards, and the parchment hero panel now reading as
+   a deeper, richer surface than its surroundings instead of a lit one.
+   Every accent is deepened from its dark-mode value for contrast on a
+   light ground — same hues, same meaning (amber = primary/route, emerald
+   = growth, coral = alert), just recalibrated for the surface they sit
+   on, the way a real ink would read differently under different light.
+   Toggled via [data-theme="light"] on <html>; every component here
+   already goes through these tokens, so nothing outside this file needs
+   to know a light mode exists. */
+[data-theme="light"] {
+  --color-ink: #f3f4f8;
+  --color-ink-soft: #e7eaf0;
+  --color-panel: #ffffff;
+  --color-panel-high: #eef0f6;
+  --color-line: #dde1ea;
+  --color-parchment: #f6efdc;
+  --color-parchment-dim: #ecdfc2;
+  --color-ink-on-parchment: #241f14;
+
+  --color-ink-muted: #5b6478;
+  --color-ink-faint: #98a0b3;
+  --color-ink-bright: #12141c;
+
+  --color-amber: #a3650f;
+  --color-amber-soft: #fbebd2;
+  --color-emerald: #0e7a4a;
+  --color-emerald-soft: #e1f3ea;
+  --color-coral: #b83a2c;
+  --color-coral-soft: #fbe2de;
+}
+
 @layer base {
   * {
     border-color: var(--color-line);
@@ -45,6 +79,10 @@
 
   html {
     color-scheme: dark;
+  }
+
+  html[data-theme="light"] {
+    color-scheme: light;
   }
 
   body {

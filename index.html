@@ -4,9 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#0d1321" />
     <title>MoneyMap</title>
+    <script>
+      // Applied before first paint so a light-mode preference doesn't
+      // flash dark for a frame — src/store/useApplyTheme.ts does the same
+      // resolution on every subsequent change, this just covers page load.
+      (function () {
+        try {
+          var mode = localStorage.getItem('moneymap.theme') || 'dark';
+          var resolved =
+            mode === 'system'
+              ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+              : mode;
+          if (resolved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

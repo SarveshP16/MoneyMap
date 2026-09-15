@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
+import { useApplyTheme } from './store/useApplyTheme';
 import { OverviewPage } from './features/overview/OverviewPage';
 import { TransactionsPage } from './features/transactions/TransactionsPage';
 import { OwedToYouPage } from './features/transactions/OwedToYouPage';
@@ -10,6 +11,8 @@ import { SubscriptionsPage } from './features/subscriptions/SubscriptionsPage';
 import { IncomePage } from './features/income/IncomePage';
 
 export default function App() {
+  useApplyTheme();
+
   return (
     <BrowserRouter>
       <Routes>
