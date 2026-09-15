@@ -14,6 +14,10 @@ export interface TransactionFilter {
   /** Matches Transaction.splitOwedByName exactly — one of the names already
    *  typed on some split expense, not free text. */
   owedByName?: string;
+  /** true = only expenses currently flagged "moved to credit card" (still
+   *  awaiting reconciliation against the statement); false = only ones
+   *  that aren't; undefined = either. */
+  movedToCreditCard?: boolean;
 }
 
 export const EMPTY_FILTER: TransactionFilter = {};
@@ -26,7 +30,8 @@ export function isFilterActive(filter: TransactionFilter): boolean {
     filter.paymentMethodId != null ||
     filter.minAmount != null ||
     filter.maxAmount != null ||
-    filter.owedByName != null
+    filter.owedByName != null ||
+    filter.movedToCreditCard != null
   );
 }
 
@@ -49,6 +54,7 @@ export function applyTransactionFilter(
       // is untouched everywhere else).
       if (t.splitOwedByName !== filter.owedByName || t.splitPaidBack) return false;
     }
+    if (filter.movedToCreditCard != null && t.movedToCreditCard !== filter.movedToCreditCard) return false;
     return true;
   });
 

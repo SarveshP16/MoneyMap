@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { AmountInput, DateInput, Field, Select, TextArea, TextInput } from '../../components/ui/fields';
 import { Button } from '../../components/ui/Button';
 import { FormDrawer } from '../../components/ui/FormDrawer';
 import { formatIsoDate, parseIsoDateLocal } from '../../lib/dates';
+import { distinctOwedByNames } from '../../lib/transactionFiltering';
 import type { Transaction } from '../../lib/types';
 import { currencyOf } from '../../lib/currency';
 import { useFinanceStore } from '../../store/useFinanceStore';
@@ -22,6 +23,8 @@ export function TransactionForm({
   const currency = useFinanceStore((s) => currencyOf(s.currency));
   const categories = useFinanceStore((s) => s.categories);
   const paymentMethods = useFinanceStore((s) => s.paymentMethods);
+  const allTransactions = useFinanceStore((s) => s.transactions);
+  const owedByNames = useMemo(() => distinctOwedByNames(allTransactions), [allTransactions]);
   const addTransaction = useFinanceStore((s) => s.addTransaction);
   const updateTransaction = useFinanceStore((s) => s.updateTransaction);
   const deleteTransaction = useFinanceStore((s) => s.deleteTransaction);
@@ -137,19 +140,41 @@ export function TransactionForm({
         {showMore && (
           <div className="flex flex-col gap-4">
             <Field label="Split amount someone owes you (optional)">
-              <AmountInput
-                symbol={currency.symbol}
-                value={splitAmount}
-                onChange={(e) => setSplitAmount(e.target.value)}
-                placeholder="0.00"
-              />
+              <div className="flex gap-2">
+                <AmountInput
+                  symbol={currency.symbol}
+                  value={splitAmount}
+                  onChange={(e) => setSplitAmount(e.target.value)}
+                  placeholder="0.00"
+                  className="flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const amountNum = Number.parseFloat(amount);
+                    if (Number.isFinite(amountNum) && amountNum > 0) {
+                      setSplitAmount((amountNum / 2).toFixed(2));
+                    }
+                  }}
+                  title="Fill in half of the expense amount"
+                  className="shrink-0 rounded-lg border border-line px-3 text-xs font-medium text-ink-muted transition-colors hover:border-amber/40 hover:text-ink-bright"
+                >
+                  Split in half
+                </button>
+              </div>
             </Field>
             <Field label="Owed by (optional)">
               <TextInput
                 value={splitOwedByName}
                 onChange={(e) => setSplitOwedByName(e.target.value)}
                 placeholder="Who owes you this?"
+                list="owed-by-names"
               />
+              <datalist id="owed-by-names">
+                {owedByNames.map((n) => (
+                  <option key={n} value={n} />
+                ))}
+              </datalist>
             </Field>
           </div>
         )}

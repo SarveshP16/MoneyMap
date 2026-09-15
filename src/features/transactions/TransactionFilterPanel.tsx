@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '../../components/ui/Button';
 import { FormDrawer } from '../../components/ui/FormDrawer';
-import { AmountInput, DateInput, Field, Select } from '../../components/ui/fields';
+import { AmountInput, DateInput, Field, Segmented, Select } from '../../components/ui/fields';
 import { formatIsoDate, parseIsoDateLocal } from '../../lib/dates';
 import { currencyOf } from '../../lib/currency';
 import { distinctOwedByNames, type TransactionFilter } from '../../lib/transactionFiltering';
@@ -23,8 +23,30 @@ export function TransactionFilterPanel({ open, onClose }: { open: boolean; onClo
   const [minAmount, setMinAmount] = useState(filter.minAmount?.toString() ?? '');
   const [maxAmount, setMaxAmount] = useState(filter.maxAmount?.toString() ?? '');
   const [owedByName, setOwedByName] = useState(filter.owedByName ?? '');
+  const [moved, setMoved] = useState<'any' | 'moved' | 'not'>(
+    filter.movedToCreditCard == null ? 'any' : filter.movedToCreditCard ? 'moved' : 'not',
+  );
 
   const owedByNames = distinctOwedByNames(transactions);
+
+  // This panel stays mounted the whole time Transactions is open (only the
+  // drawer inside it toggles), so its fields would otherwise go stale the
+  // moment the active filter changes from anywhere else — e.g. the
+  // reconciliation banner's "View only these" shortcut. Re-sync every time
+  // the drawer opens, so it always reflects what's actually applied rather
+  // than whatever was last typed here.
+  useEffect(() => {
+    if (!open) return;
+    setStartDate(filter.startDate ? formatIsoDate(new Date(filter.startDate)) : '');
+    setEndDate(filter.endDate ? formatIsoDate(new Date(filter.endDate)) : '');
+    setCategoryId(filter.categoryId ?? '');
+    setPaymentMethodId(filter.paymentMethodId ?? '');
+    setMinAmount(filter.minAmount?.toString() ?? '');
+    setMaxAmount(filter.maxAmount?.toString() ?? '');
+    setOwedByName(filter.owedByName ?? '');
+    setMoved(filter.movedToCreditCard == null ? 'any' : filter.movedToCreditCard ? 'moved' : 'not');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function apply() {
     const next: TransactionFilter = {
@@ -35,6 +57,7 @@ export function TransactionFilterPanel({ open, onClose }: { open: boolean; onClo
       minAmount: minAmount ? Number.parseFloat(minAmount) : undefined,
       maxAmount: maxAmount ? Number.parseFloat(maxAmount) : undefined,
       owedByName: owedByName || undefined,
+      movedToCreditCard: moved === 'any' ? undefined : moved === 'moved',
     };
     applyFilter(next);
     onClose();
@@ -49,6 +72,7 @@ export function TransactionFilterPanel({ open, onClose }: { open: boolean; onClo
     setMinAmount('');
     setMaxAmount('');
     setOwedByName('');
+    setMoved('any');
     onClose();
   }
 
@@ -111,6 +135,15 @@ export function TransactionFilterPanel({ open, onClose }: { open: boolean; onClo
             </Select>
           </Field>
         )}
+
+        <Field label="Moved to credit card">
+          <Segmented
+            value={moved}
+            options={['any', 'moved', 'not'] as const}
+            labels={{ any: 'Any', moved: 'Moved only', not: 'Not moved' }}
+            onChange={setMoved}
+          />
+        </Field>
 
         <div className="mt-2 flex gap-2">
           <Button variant="outline" onClick={clear} className="flex-1">

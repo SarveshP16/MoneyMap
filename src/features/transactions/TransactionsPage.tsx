@@ -12,12 +12,14 @@ import type { Transaction } from '../../lib/types';
 import { TransactionRow } from './TransactionRow';
 import { TransactionForm } from './TransactionForm';
 import { TransactionFilterPanel } from './TransactionFilterPanel';
+import { ReconciliationBanner } from './ReconciliationBanner';
 
 export function TransactionsPage() {
   const transactions = useFinanceStore((s) => s.transactions);
   const categories = useFinanceStore((s) => s.categories);
   const paymentMethods = useFinanceStore((s) => s.paymentMethods);
   const filter = useFinanceStore((s) => s.filter);
+  const applyFilter = useFinanceStore((s) => s.applyFilter);
   const currency = useFinanceStore((s) => currencyOf(s.currency));
 
   const filtered = useMemo(() => applyTransactionFilter(transactions, filter), [transactions, filter]);
@@ -55,6 +57,8 @@ export function TransactionsPage() {
       />
 
       <div className="px-5 py-6 sm:px-8">
+        <ReconciliationBanner onViewMoved={() => applyFilter({ ...filter, movedToCreditCard: true })} />
+
         {filterActive && (
           <div className="mb-4 rounded-lg border border-amber/30 bg-amber-soft/40 px-4 py-2 text-sm text-ink-bright">
             Filter active — showing {filtered.length} of {transactions.length} expenses.
