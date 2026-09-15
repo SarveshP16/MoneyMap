@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AmountInput, Field, Segmented, TextInput } from '../../components/ui/fields';
 import { Button } from '../../components/ui/Button';
 import { FormDrawer } from '../../components/ui/FormDrawer';
@@ -27,6 +27,14 @@ export function CategoryForm({
   const [name, setName] = useState(category?.name ?? '');
   const [amount, setAmount] = useState(category?.budgetAmount?.toString() ?? '');
   const [period, setPeriod] = useState<BudgetPeriod>(category?.period ?? 'monthly');
+
+  useEffect(() => {
+    if (!open) return;
+    setName(category?.name ?? '');
+    setAmount(category?.budgetAmount?.toString() ?? '');
+    setPeriod(category?.period ?? 'monthly');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function save() {
     if (!name.trim()) return;

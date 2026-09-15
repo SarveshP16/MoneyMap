@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AmountInput, DateInput, Field, TextInput } from '../../components/ui/fields';
 import { Button } from '../../components/ui/Button';
 import { FormDrawer } from '../../components/ui/FormDrawer';
@@ -31,6 +31,17 @@ export function SavingsGoalForm({
   const [startDate, setStartDate] = useState(goal?.startDate ? formatIsoDate(new Date(goal.startDate)) : '');
   const [targetDate, setTargetDate] = useState(goal?.targetDate ? formatIsoDate(new Date(goal.targetDate)) : '');
   const [bankAccount, setBankAccount] = useState(goal?.bankAccount ?? '');
+
+  useEffect(() => {
+    if (!open) return;
+    setName(goal?.name ?? '');
+    setTarget(goal?.targetAmount.toString() ?? '');
+    setCurrent(goal?.currentAmount.toString() ?? '');
+    setStartDate(goal?.startDate ? formatIsoDate(new Date(goal.startDate)) : '');
+    setTargetDate(goal?.targetDate ? formatIsoDate(new Date(goal.targetDate)) : '');
+    setBankAccount(goal?.bankAccount ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function save() {
     const targetNum = Number.parseFloat(target);
