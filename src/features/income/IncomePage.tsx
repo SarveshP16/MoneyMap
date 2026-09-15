@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Landmark, Plus } from 'lucide-react';
+import { Download, Landmark, Loader2, Plus } from 'lucide-react';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -9,12 +9,27 @@ import { currentFinancialYearRange, financialYearLabel } from '../../lib/finance
 import type { IncomeRecord } from '../../lib/types';
 import { IncomeCard } from './IncomeCard';
 import { IncomeForm } from './IncomeForm';
+import { exportIncomePdf } from './exportIncomePdf';
+import { useToastStore } from '../../store/useToastStore';
 
 export function IncomePage() {
   const records = useFinanceStore((s) => s.incomeRecords);
   const currency = useFinanceStore((s) => currencyOf(s.currency));
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<IncomeRecord | undefined>(undefined);
+  const [exporting, setExporting] = useState(false);
+  const showToast = useToastStore((s) => s.show);
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      await exportIncomePdf(records, currency);
+    } catch {
+      showToast("Couldn't export PDF — try again");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const { fyGross, fyTax, heading, sorted } = useMemo(() => {
     const { start, end } = currentFinancialYearRange(currency.isAustralian);
@@ -37,15 +52,27 @@ export function IncomePage() {
         title="Income & tax"
         subtitle="Income, tax withheld, and super"
         actions={
-          <Button
-            icon={<Plus size={16} />}
-            onClick={() => {
-              setEditing(undefined);
-              setFormOpen(true);
-            }}
-          >
-            Add income
-          </Button>
+          <>
+            {records.length > 0 && (
+              <Button
+                variant="outline"
+                icon={exporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                onClick={handleExport}
+                disabled={exporting}
+              >
+                {exporting ? 'Exporting…' : 'Export PDF'}
+              </Button>
+            )}
+            <Button
+              icon={<Plus size={16} />}
+              onClick={() => {
+                setEditing(undefined);
+                setFormOpen(true);
+              }}
+            >
+              Add income
+            </Button>
+          </>
         }
       />
 
