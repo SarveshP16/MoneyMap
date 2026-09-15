@@ -18,6 +18,8 @@ export function DataBackup() {
   const investments = useFinanceStore((s) => s.investments);
   const subscriptions = useFinanceStore((s) => s.subscriptions);
   const incomeRecords = useFinanceStore((s) => s.incomeRecords);
+  const purchases = useFinanceStore((s) => s.purchases);
+  const carExpenses = useFinanceStore((s) => s.carExpenses);
   const currency = useFinanceStore((s) => s.currency);
   const restoreAll = useFinanceStore((s) => s.restoreAll);
 
@@ -34,6 +36,8 @@ export function DataBackup() {
       investments,
       subscriptions,
       incomeRecords,
+      purchases,
+      carExpenses,
       currency,
     };
     downloadBackup(data);

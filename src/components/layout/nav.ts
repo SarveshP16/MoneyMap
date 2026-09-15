@@ -6,6 +6,7 @@ import {
   TrendingUp,
   CalendarClock,
   Landmark,
+  ShoppingBag,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -22,5 +23,6 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/savings', label: 'Savings', icon: PiggyBank },
   { to: '/investments', label: 'Investments', icon: TrendingUp },
   { to: '/subscriptions', label: 'Subscriptions & bills', icon: CalendarClock },
+  { to: '/purchases', label: 'Purchases & expenses', icon: ShoppingBag },
   { to: '/income', label: 'Income & tax', icon: Landmark },
 ];
