@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AmountInput, DateInput, Field, TextArea, TextInput } from '../../components/ui/fields';
 import { Button } from '../../components/ui/Button';
 import { FormDrawer } from '../../components/ui/FormDrawer';
@@ -38,6 +38,19 @@ export function IncomeForm({
   const [tax, setTax] = useState(record?.taxWithheld?.toString() ?? '');
   const [superAmount, setSuperAmount] = useState(record?.superAmount?.toString() ?? '');
   const [note, setNote] = useState(record?.note ?? '');
+
+  useEffect(() => {
+    if (!open) return;
+    setSourceName(record?.sourceName ?? '');
+    setIncomeType(record?.incomeType);
+    setDateReceived(formatIsoDate(record ? new Date(record.dateReceived) : new Date()));
+    setGross(record?.grossAmount.toString() ?? '');
+    setNet(record?.netAmount?.toString() ?? '');
+    setTax(record?.taxWithheld?.toString() ?? '');
+    setSuperAmount(record?.superAmount?.toString() ?? '');
+    setNote(record?.note ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const parsedDate = dateReceived ? parseIsoDateLocal(dateReceived) : new Date();
 

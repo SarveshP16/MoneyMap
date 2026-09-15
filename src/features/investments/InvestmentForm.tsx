@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AmountInput, DateInput, Field, TextInput } from '../../components/ui/fields';
 import { Button } from '../../components/ui/Button';
 import { FormDrawer } from '../../components/ui/FormDrawer';
@@ -33,6 +33,17 @@ export function InvestmentForm({
     investment?.purchaseDate ? formatIsoDate(new Date(investment.purchaseDate)) : '',
   );
   const [currentValue, setCurrentValue] = useState(investment?.currentValue.toString() ?? '');
+
+  useEffect(() => {
+    if (!open) return;
+    setName(investment?.name ?? '');
+    setType(investment?.type ?? '');
+    setQuantity(investment?.quantity?.toString() ?? '');
+    setPurchasePrice(investment?.purchasePrice?.toString() ?? '');
+    setPurchaseDate(investment?.purchaseDate ? formatIsoDate(new Date(investment.purchaseDate)) : '');
+    setCurrentValue(investment?.currentValue.toString() ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function save() {
     const currentValueNum = Number.parseFloat(currentValue);

@@ -9,16 +9,24 @@ export function PaymentMethodForm({ open, onClose }: { open: boolean; onClose: (
   const [name, setName] = useState('');
   const [isCreditCard, setIsCreditCard] = useState(false);
 
-  function save() {
-    if (!name.trim()) return;
-    addPaymentMethod({ name: name.trim(), isCreditCard });
+  // No entity to key this drawer's fields off (it's always a fresh add),
+  // so resetting on close — rather than an effect on open — is enough to
+  // stop a draft left over from "closed without saving" showing up next
+  // time this opens.
+  function close() {
     setName('');
     setIsCreditCard(false);
     onClose();
   }
 
+  function save() {
+    if (!name.trim()) return;
+    addPaymentMethod({ name: name.trim(), isCreditCard });
+    close();
+  }
+
   return (
-    <FormDrawer open={open} onClose={onClose} title="Add payment method">
+    <FormDrawer open={open} onClose={close} title="Add payment method">
       <div className="flex flex-col gap-4">
         <Field label="Name">
           <TextInput

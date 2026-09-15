@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AmountInput, DateInput, Field, Segmented, TextArea, TextInput } from '../../components/ui/fields';
 import { Button } from '../../components/ui/Button';
 import { FormDrawer } from '../../components/ui/FormDrawer';
@@ -30,6 +30,19 @@ export function CarExpenseForm({
   const [date, setDate] = useState(formatIsoDate(carExpense ? new Date(carExpense.date) : new Date()));
   const [category, setCategory] = useState<CarExpenseCategory>(carExpense?.category ?? 'service');
   const [note, setNote] = useState(carExpense?.note ?? '');
+
+  // Same reset-on-open as PurchaseForm — the drawer stays mounted between
+  // uses, so without this a second "New car expense" would still show the
+  // last one's leftover values.
+  useEffect(() => {
+    if (!open) return;
+    setName(carExpense?.name ?? '');
+    setAmount(carExpense?.amount.toString() ?? '');
+    setDate(formatIsoDate(carExpense ? new Date(carExpense.date) : new Date()));
+    setCategory(carExpense?.category ?? 'service');
+    setNote(carExpense?.note ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function save() {
     const amountNum = Number.parseFloat(amount);

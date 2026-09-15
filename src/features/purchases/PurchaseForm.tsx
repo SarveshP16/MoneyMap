@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AmountInput, DateInput, Field, TextArea, TextInput } from '../../components/ui/fields';
 import { Button } from '../../components/ui/Button';
 import { FormDrawer } from '../../components/ui/FormDrawer';
@@ -29,6 +29,19 @@ export function PurchaseForm({
   const [amount, setAmount] = useState(purchase?.amount.toString() ?? '');
   const [date, setDate] = useState(formatIsoDate(purchase ? new Date(purchase.date) : new Date()));
   const [note, setNote] = useState(purchase?.note ?? '');
+
+  // The drawer's contents stay mounted between an "Add" and the next one —
+  // only opening/closing toggles, the component itself doesn't remount —
+  // so without this, a second "New purchase" would still show the last
+  // purchase's leftover values. Reset every time the drawer opens instead.
+  useEffect(() => {
+    if (!open) return;
+    setName(purchase?.name ?? '');
+    setAmount(purchase?.amount.toString() ?? '');
+    setDate(formatIsoDate(purchase ? new Date(purchase.date) : new Date()));
+    setNote(purchase?.note ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function save() {
     const amountNum = Number.parseFloat(amount);

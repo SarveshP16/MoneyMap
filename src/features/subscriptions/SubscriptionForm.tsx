@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AmountInput, DateInput, Field, Segmented, TextInput } from '../../components/ui/fields';
 import { Button } from '../../components/ui/Button';
 import { FormDrawer } from '../../components/ui/FormDrawer';
@@ -42,6 +42,17 @@ export function SubscriptionForm({
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(subscription?.billingCycle ?? 'monthly');
   const [startDate, setStartDate] = useState(subscription?.startDate ? formatIsoDate(new Date(subscription.startDate)) : '');
   const [endDate, setEndDate] = useState(subscription?.endDate ? formatIsoDate(new Date(subscription.endDate)) : '');
+
+  useEffect(() => {
+    if (!open) return;
+    setKind(subscription?.kind ?? initialKind);
+    setName(subscription?.name ?? '');
+    setAmount(subscription?.amount.toString() ?? '');
+    setBillingCycle(subscription?.billingCycle ?? 'monthly');
+    setStartDate(subscription?.startDate ? formatIsoDate(new Date(subscription.startDate)) : '');
+    setEndDate(subscription?.endDate ? formatIsoDate(new Date(subscription.endDate)) : '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function save() {
     const amountNum = Number.parseFloat(amount);

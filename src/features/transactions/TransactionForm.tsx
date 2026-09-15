@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { AmountInput, DateInput, Field, Select, TextArea, TextInput } from '../../components/ui/fields';
 import { Button } from '../../components/ui/Button';
@@ -40,6 +40,23 @@ export function TransactionForm({
   const [showMore, setShowMore] = useState(transaction?.splitAmount != null);
   const [splitAmount, setSplitAmount] = useState(transaction?.splitAmount?.toString() ?? '');
   const [splitOwedByName, setSplitOwedByName] = useState(transaction?.splitOwedByName ?? '');
+
+  // The drawer's contents stay mounted between an "Add" and the next one —
+  // reset every time it opens, or a second "New expense" would still show
+  // the last expense's leftover values.
+  useEffect(() => {
+    if (!open) return;
+    setAmount(transaction?.amount.toString() ?? '');
+    setName(transaction?.name ?? '');
+    setDate(formatIsoDate(transaction ? new Date(transaction.date) : new Date()));
+    setCategoryId(transaction?.categoryId ?? '');
+    setPaymentMethodId(transaction?.paymentMethodId ?? '');
+    setNote(transaction?.note ?? '');
+    setShowMore(transaction?.splitAmount != null);
+    setSplitAmount(transaction?.splitAmount?.toString() ?? '');
+    setSplitOwedByName(transaction?.splitOwedByName ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function save() {
     const amountNum = Number.parseFloat(amount);
