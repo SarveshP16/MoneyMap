@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { fetchState, pushState } from '../lib/api';
+import { fetchState, pushState, type ServerState } from '../lib/api';
 import { generateLocalId } from '../lib/id';
-import { loadCollection, loadValue } from '../lib/storage';
+import { loadCollection, loadValue, saveValue } from '../lib/storage';
 import { useToastStore } from './useToastStore';
 import {
   EMPTY_FILTER,
@@ -24,6 +24,17 @@ export type SyncStatus = 'loading' | 'ready' | 'error';
 
 interface FinanceState {
   status: SyncStatus;
+  /** Whether the last request to the server (a poll, a push, the initial
+   *  load) actually succeeded — the ground truth the UI's offline indicator
+   *  follows, rather than the browser's own online/offline signal, since
+   *  that reflects the network interface, not whether this specific server
+   *  is actually reachable over it. */
+  isOnline: boolean;
+  /** True when a mutation's push to the server failed and hasn't been
+   *  retried successfully yet — the change is only saved locally until
+   *  then. Blocks pulling from the server (that would silently discard it)
+   *  until it's flushed. */
+  pendingSync: boolean;
 
   transactions: Transaction[];
   categories: Category[];
@@ -154,12 +165,21 @@ function isEmptyBackup(data: FinanceBackupData): boolean {
   );
 }
 
+const LAST_KNOWN_STATE_KEY = 'lastKnownServerState';
+type SetState = (partial: Partial<FinanceState>) => void;
+
 /** Pushes the full current state to the server after a local mutation —
  *  optimistic: the UI already reflects the change, this just fires the
- *  sync in the background and surfaces a toast if it fails, rather than
- *  blocking every click on a network round trip. */
-function syncToServer(get: () => FinanceState) {
+ *  sync in the background. On failure the change stays only local
+ *  (pendingSync flips on, so the offline indicator shows and the next poll
+ *  or reconnect retries this same push instead of pulling and discarding
+ *  it) rather than being lost. Also used directly to retry a previously
+ *  failed push, which is why it checks whether pendingSync was already set
+ *  before toasting — a mutation made while already known-offline shouldn't
+ *  pop a new toast on top of the one still showing. */
+function syncToServer(get: () => FinanceState, set: SetState) {
   const s = get();
+  const wasAlreadyPending = s.pendingSync;
   pushState({
     transactions: s.transactions,
     categories: s.categories,
@@ -171,14 +191,24 @@ function syncToServer(get: () => FinanceState) {
     purchases: s.purchases,
     carExpenses: s.carExpenses,
     currency: s.currency,
-  }).catch((err: unknown) => {
-    console.error('Failed to sync to server', err);
-    useToastStore.getState().show("Couldn't sync that change — check the connection");
-  });
+  })
+    .then((saved) => {
+      saveValue(LAST_KNOWN_STATE_KEY, saved);
+      set({ pendingSync: false, isOnline: true });
+    })
+    .catch((err: unknown) => {
+      console.error('Failed to sync to server', err);
+      set({ pendingSync: true, isOnline: false });
+      if (!wasAlreadyPending) {
+        useToastStore.getState().show("You're offline — this'll sync once you're back online.");
+      }
+    });
 }
 
 export const useFinanceStore = create<FinanceState>((set, get) => ({
   status: 'loading',
+  isOnline: true,
+  pendingSync: false,
 
   transactions: [],
   categories: [],
@@ -203,19 +233,38 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
         const legacy = readLegacyLocalStorage();
         if (!isEmptyBackup(legacy)) {
           const saved = await pushState(legacy);
-          set({ ...saved, status: 'ready' });
+          saveValue(LAST_KNOWN_STATE_KEY, saved);
+          set({ ...saved, status: 'ready', isOnline: true, pendingSync: false });
           return;
         }
       }
-      set({ ...server, status: 'ready' });
+      saveValue(LAST_KNOWN_STATE_KEY, server);
+      set({ ...server, status: 'ready', isOnline: true, pendingSync: false });
     } catch (err) {
       console.error('Failed to load from server', err);
-      set({ status: 'error' });
+      // No connection on first load — fall back to whatever this browser
+      // last saw from the server (saved after every successful load/sync)
+      // so the app still opens with your real data instead of an error
+      // screen, offline-first rather than offline-broken.
+      const cached = loadValue<ServerState | null>(LAST_KNOWN_STATE_KEY, null);
+      if (cached) {
+        set({ ...cached, status: 'ready', isOnline: false, pendingSync: false });
+      } else {
+        set({ status: 'error' });
+      }
     }
   },
 
+  /** The poll-interval / regained-connectivity path: pulls whatever changed
+   *  on another device — unless there's a local change still waiting to be
+   *  pushed (pendingSync), in which case pulling would overwrite it with
+   *  the server's older copy, so this retries the push instead. */
   refreshFromServer: async () => {
     if (get().status !== 'ready') return;
+    if (get().pendingSync) {
+      syncToServer(get, set);
+      return;
+    }
     try {
       const server = await fetchState();
       set({
@@ -229,175 +278,178 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
         purchases: server.purchases,
         carExpenses: server.carExpenses,
         currency: server.currency,
+        isOnline: true,
       });
+      saveValue(LAST_KNOWN_STATE_KEY, server);
     } catch (err) {
       // A transient network blip shouldn't disrupt an already-working
       // session — just try again on the next poll.
       console.error('Background refresh failed', err);
+      set({ isOnline: false });
     }
   },
 
   addTransaction: (t) => {
     const record: Transaction = { ...t, id: generateLocalId(), createdAt: new Date().toISOString() };
     set({ transactions: [...get().transactions, record] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   updateTransaction: (t) => {
     set({ transactions: get().transactions.map((x) => (x.id === t.id ? t : x)) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   deleteTransaction: (id) => {
     set({ transactions: get().transactions.filter((x) => x.id !== id) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   restoreTransaction: (t) => {
     set({ transactions: [...get().transactions, t] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
 
   addCategory: (c) => {
     const record: Category = { ...c, id: generateLocalId(), createdAt: new Date().toISOString() };
     set({ categories: [...get().categories, record] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   updateCategory: (c) => {
     set({ categories: get().categories.map((x) => (x.id === c.id ? c : x)) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   deleteCategory: (id) => {
     set({ categories: get().categories.filter((x) => x.id !== id) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   restoreCategory: (c) => {
     set({ categories: [...get().categories, c] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
 
   addPaymentMethod: (m) => {
     const record: PaymentMethod = { ...m, id: generateLocalId(), createdAt: new Date().toISOString() };
     set({ paymentMethods: [...get().paymentMethods, record] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   deletePaymentMethod: (id) => {
     set({ paymentMethods: get().paymentMethods.filter((x) => x.id !== id) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   restorePaymentMethod: (m) => {
     set({ paymentMethods: [...get().paymentMethods, m] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
 
   addSavingsGoal: (g) => {
     const record: SavingsGoal = { ...g, id: generateLocalId(), createdAt: new Date().toISOString() };
     set({ savingsGoals: [...get().savingsGoals, record] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   updateSavingsGoal: (g) => {
     set({ savingsGoals: get().savingsGoals.map((x) => (x.id === g.id ? g : x)) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   deleteSavingsGoal: (id) => {
     set({ savingsGoals: get().savingsGoals.filter((x) => x.id !== id) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   restoreSavingsGoal: (g) => {
     set({ savingsGoals: [...get().savingsGoals, g] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
 
   addInvestment: (i) => {
     const record: Investment = { ...i, id: generateLocalId(), createdAt: new Date().toISOString() };
     set({ investments: [...get().investments, record] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   updateInvestment: (i) => {
     set({ investments: get().investments.map((x) => (x.id === i.id ? i : x)) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   deleteInvestment: (id) => {
     set({ investments: get().investments.filter((x) => x.id !== id) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   restoreInvestment: (i) => {
     set({ investments: [...get().investments, i] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
 
   addSubscription: (s) => {
     const record: Subscription = { ...s, id: generateLocalId(), createdAt: new Date().toISOString() };
     set({ subscriptions: [...get().subscriptions, record] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   updateSubscription: (s) => {
     set({ subscriptions: get().subscriptions.map((x) => (x.id === s.id ? s : x)) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   deleteSubscription: (id) => {
     set({ subscriptions: get().subscriptions.filter((x) => x.id !== id) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   restoreSubscription: (s) => {
     set({ subscriptions: [...get().subscriptions, s] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
 
   addIncomeRecord: (r) => {
     const record: IncomeRecord = { ...r, id: generateLocalId(), createdAt: new Date().toISOString() };
     set({ incomeRecords: [...get().incomeRecords, record] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   updateIncomeRecord: (r) => {
     set({ incomeRecords: get().incomeRecords.map((x) => (x.id === r.id ? r : x)) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   deleteIncomeRecord: (id) => {
     set({ incomeRecords: get().incomeRecords.filter((x) => x.id !== id) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   restoreIncomeRecord: (r) => {
     set({ incomeRecords: [...get().incomeRecords, r] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
 
   addPurchase: (p) => {
     const record: Purchase = { ...p, id: generateLocalId(), createdAt: new Date().toISOString() };
     set({ purchases: [...get().purchases, record] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   updatePurchase: (p) => {
     set({ purchases: get().purchases.map((x) => (x.id === p.id ? p : x)) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   deletePurchase: (id) => {
     set({ purchases: get().purchases.filter((x) => x.id !== id) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   restorePurchase: (p) => {
     set({ purchases: [...get().purchases, p] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
 
   addCarExpense: (c) => {
     const record: CarExpense = { ...c, id: generateLocalId(), createdAt: new Date().toISOString() };
     set({ carExpenses: [...get().carExpenses, record] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   updateCarExpense: (c) => {
     set({ carExpenses: get().carExpenses.map((x) => (x.id === c.id ? c : x)) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   deleteCarExpense: (id) => {
     set({ carExpenses: get().carExpenses.filter((x) => x.id !== id) });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   restoreCarExpense: (c) => {
     set({ carExpenses: [...get().carExpenses, c] });
-    syncToServer(get);
+    syncToServer(get, set);
   },
 
   setCurrency: (c) => {
     set({ currency: c });
-    syncToServer(get);
+    syncToServer(get, set);
   },
   applyFilter: (f) => set({ filter: f }),
   clearFilter: () => set({ filter: EMPTY_FILTER }),
@@ -415,6 +467,6 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     if (data.carExpenses) updates.carExpenses = data.carExpenses;
     if (data.currency) updates.currency = data.currency;
     set(updates);
-    syncToServer(get);
+    syncToServer(get, set);
   },
 }));

@@ -5,6 +5,7 @@ import { Sidebar } from './Sidebar';
 import { MobileNav } from './MobileNav';
 import { Logo } from './Logo';
 import { Toaster } from '../Toaster';
+import { SyncStatusIndicator } from '../ui/SyncStatusIndicator';
 
 export function AppShell() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -25,6 +26,9 @@ export function AppShell() {
           </button>
           <Logo size={18} />
           <span className="font-display text-base font-semibold text-ink-bright">MoneyMap</span>
+          <span className="ml-auto">
+            <SyncStatusIndicator compact />
+          </span>
         </header>
 
         <main className="flex-1 overflow-y-auto">

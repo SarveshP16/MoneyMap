@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { Logo } from './layout/Logo';
 import { Button } from './ui/Button';
 import { useFinanceStore } from '../store/useFinanceStore';
+import { useConnectivity } from '../store/useConnectivity';
 import { useSyncPolling } from '../store/useSyncPolling';
 
 /** Blocks rendering the app until the initial load from the sync server
@@ -16,6 +17,7 @@ export function ConnectionGate({ children }: { children: ReactNode }) {
   const status = useFinanceStore((s) => s.status);
   const init = useFinanceStore((s) => s.init);
   useSyncPolling();
+  useConnectivity();
 
   useEffect(() => {
     init();
