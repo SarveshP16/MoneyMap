@@ -15,6 +15,15 @@ const MUTED = '#5d6685';
 const AMBER = '#e8a33d';
 const LINE = '#d8d2c4';
 
+/** A right-aligned table cell. autoTable's `columnStyles` sets a column's
+ *  default alignment for body cells, but doesn't reliably cascade to head/
+ *  foot cells — those need alignment on the cell itself to be sure numeric
+ *  columns actually line up under their own values instead of floating
+ *  left of them. */
+function rightCell(content: string) {
+  return { content, styles: { halign: 'right' as const } };
+}
+
 /** Per-financial-year subtotals, newest year first — same grouping
  *  `financialYearLabel` already does per record in the app, aggregated
  *  across every record instead of just the current year (a PDF meant to
@@ -82,9 +91,14 @@ export async function exportIncomePdf(records: IncomeRecord[], currency: Currenc
   autoTable(doc, {
     startY: 116,
     margin: { left: margin, right: margin },
-    head: [[yearColumnLabel, 'Gross', 'Tax withheld', 'Net']],
+    head: [[yearColumnLabel, rightCell('Gross'), rightCell('Tax withheld'), rightCell('Net')]],
     body: summaryRows,
-    foot: [['All time', formatCurrency(totalGross, currency), formatCurrency(totalTax, currency), formatCurrency(totalGross - totalTax, currency)]],
+    foot: [[
+      'All time',
+      rightCell(formatCurrency(totalGross, currency)),
+      rightCell(formatCurrency(totalTax, currency)),
+      rightCell(formatCurrency(totalGross - totalTax, currency)),
+    ]],
     theme: 'plain',
     styles: { fontSize: 9, textColor: INK, cellPadding: { top: 5, bottom: 5, left: 0, right: 8 } },
     headStyles: { textColor: MUTED, fontStyle: 'bold', lineWidth: { bottom: 0.75 }, lineColor: LINE },
@@ -96,8 +110,12 @@ export async function exportIncomePdf(records: IncomeRecord[], currency: Currenc
   const sorted = [...records].sort((a, b) => new Date(b.dateReceived).getTime() - new Date(a.dateReceived).getTime());
 
   const head = currency.isAustralian
-    ? ['Date', yearColumnLabel, 'Source', 'Type', 'Gross', 'Tax', 'Super', 'Net', 'Note']
-    : ['Date', yearColumnLabel, 'Source', 'Gross', 'Tax', 'Net', 'Note'];
+    ? ['Date', yearColumnLabel, 'Source', 'Type', rightCell('Gross'), rightCell('Tax'), rightCell('Super'), rightCell('Net'), 'Note']
+    : ['Date', yearColumnLabel, 'Source', rightCell('Gross'), rightCell('Tax'), rightCell('Net'), 'Note'];
+
+  // Column indices of the four amount columns, so the body cells below
+  // line up under these same right-aligned headers.
+  const amountColumns = currency.isAustralian ? [4, 5, 6, 7] : [3, 4, 5];
 
   const body = sorted.map((r) => {
     const date = new Date(r.dateReceived);
@@ -137,6 +155,7 @@ export async function exportIncomePdf(records: IncomeRecord[], currency: Currenc
     styles: { fontSize: 8, textColor: INK, cellPadding: 5 },
     headStyles: { fillColor: INK, textColor: '#ffffff', fontStyle: 'bold' },
     alternateRowStyles: { fillColor: '#f6f4ee' },
+    columnStyles: Object.fromEntries(amountColumns.map((i) => [i, { halign: 'right' }])),
     didDrawPage: (data) => {
       doc.setFontSize(8);
       doc.setTextColor(MUTED);
