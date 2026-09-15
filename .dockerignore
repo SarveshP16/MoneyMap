@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+.git
+.gitignore
+*.log
+.vscode
+.idea
+.oxlintrc.json
+README.md
