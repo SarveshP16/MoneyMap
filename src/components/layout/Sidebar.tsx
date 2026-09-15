@@ -3,6 +3,7 @@ import { Logo } from './Logo';
 import { NAV_ITEMS } from './nav';
 import { CurrencyPicker } from '../ui/CurrencyPicker';
 import { DataBackup } from '../ui/DataBackup';
+import { SyncStatusIndicator } from '../ui/SyncStatusIndicator';
 import { ThemeToggle } from '../ui/ThemeToggle';
 
 export function Sidebar() {
@@ -41,6 +42,7 @@ export function Sidebar() {
       </nav>
 
       <div className="flex flex-col gap-2 p-3">
+        <SyncStatusIndicator />
         <ThemeToggle />
         <CurrencyPicker />
         <DataBackup />

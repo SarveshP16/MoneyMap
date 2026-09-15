@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { ConnectionGate } from './components/ConnectionGate';
 import { useApplyTheme } from './store/useApplyTheme';
+import { useServiceWorker } from './store/useServiceWorker';
 import { OverviewPage } from './features/overview/OverviewPage';
 import { TransactionsPage } from './features/transactions/TransactionsPage';
 import { OwedToYouPage } from './features/transactions/OwedToYouPage';
@@ -14,6 +15,7 @@ import { IncomePage } from './features/income/IncomePage';
 
 export default function App() {
   useApplyTheme();
+  useServiceWorker();
 
   return (
     <ConnectionGate>
