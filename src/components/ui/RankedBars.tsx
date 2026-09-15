@@ -33,6 +33,10 @@ export function RankedBars({
   const currency = useFinanceStore((s) => currencyOf(s.currency));
   const max = rows[0]?.total ?? 0;
 
+  if (rows.length === 0) {
+    return <p className="text-xs text-ink-faint">No data for this filter.</p>;
+  }
+
   return (
     <div className="flex flex-col gap-3">
       {rows.map((r) => {
