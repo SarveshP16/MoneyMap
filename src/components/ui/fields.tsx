@@ -44,7 +44,7 @@ export function DateInput(props: InputHTMLAttributes<HTMLInputElement>) {
     <input
       {...props}
       type="date"
-      className={`${inputClasses} figure-sans [color-scheme:dark] ${props.className ?? ''}`}
+      className={`${inputClasses} figure-sans ${props.className ?? ''}`}
     />
   );
 }
