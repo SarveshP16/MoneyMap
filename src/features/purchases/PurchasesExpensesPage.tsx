@@ -6,10 +6,8 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { Button, IconButton } from '../../components/ui/Button';
 import { CountUp } from '../../components/ui/CountUp';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { RankedBars } from '../../components/ui/RankedBars';
 import { useFinanceStore } from '../../store/useFinanceStore';
 import { currencyOf, formatCurrency } from '../../lib/currency';
-import { groupByLabel, groupByYear } from '../../lib/yearlyTotals';
 import {
   CAR_EXPENSE_CATEGORIES,
   carExpenseCategoryLabel,
@@ -89,24 +87,6 @@ export function PurchasesExpensesPage() {
 
   const purchasesTotal = filteredPurchases.reduce((s, p) => s + p.amount, 0);
   const carExpensesTotal = filteredCarExpenses.reduce((s, c) => s + c.amount, 0);
-
-  // Breakdown panels stay informational (not click-to-filter) now that
-  // there's an explicit filter control — each one cross-filters against
-  // the *other* active dimension so it still answers "which years had Rego
-  // costs?" / "what did 2026 go on?" without collapsing to a single bar
-  // once its own dimension is already picked up top.
-  const purchasesByYear = groupByYear(purchases, (p) => p.date, (p) => p.amount);
-  const carExpensesByYear = groupByYear(
-    categoryFilter == null ? carExpenses : carExpenses.filter((c) => c.category === categoryFilter),
-    (c) => c.date,
-    (c) => c.amount,
-  );
-  const carExpensesByCategory = groupByLabel(
-    yearFilter == null ? carExpenses : carExpenses.filter((c) => yearOf(c.date) === yearFilter),
-    (c) => carExpenseCategoryLabel[c.category],
-    (c) => c.amount,
-    (c) => c.category,
-  );
 
   const purchasesCaption = yearFilter != null ? String(yearFilter) : 'All time';
   const carCaption =
@@ -199,39 +179,31 @@ export function PurchasesExpensesPage() {
                 </Button>
               }
             />
+          ) : sortedPurchases.length === 0 ? (
+            <EmptyState
+              icon={ShoppingBag}
+              title="No purchases in this filter"
+              description="Try a different year, or clear the filter to see everything."
+              action={
+                <Button variant="outline" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              }
+            />
           ) : (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-              <div className="rounded-xl border border-line bg-panel p-4 lg:col-span-1">
-                <h3 className="mb-3 text-xs font-medium text-ink-muted">By year</h3>
-                <RankedBars rows={purchasesByYear.map((y) => ({ key: String(y.year), label: String(y.year), total: y.total }))} />
-              </div>
-              <div className="flex flex-col gap-2 lg:col-span-2">
-                {sortedPurchases.length === 0 ? (
-                  <EmptyState
-                    icon={ShoppingBag}
-                    title="No purchases in this filter"
-                    description="Try a different year, or clear the filter to see everything."
-                    action={
-                      <Button variant="outline" onClick={clearFilters}>
-                        Clear filters
-                      </Button>
-                    }
+            <div className="flex flex-col gap-2">
+              <AnimatePresence>
+                {sortedPurchases.map((p) => (
+                  <PurchaseRow
+                    key={p.id}
+                    purchase={p}
+                    onClick={() => {
+                      setEditingPurchase(p);
+                      setPurchaseFormOpen(true);
+                    }}
                   />
-                ) : (
-                  <AnimatePresence>
-                    {sortedPurchases.map((p) => (
-                      <PurchaseRow
-                        key={p.id}
-                        purchase={p}
-                        onClick={() => {
-                          setEditingPurchase(p);
-                          setPurchaseFormOpen(true);
-                        }}
-                      />
-                    ))}
-                  </AnimatePresence>
-                )}
-              </div>
+                ))}
+              </AnimatePresence>
             </div>
           )}
         </section>
@@ -265,46 +237,32 @@ export function PurchasesExpensesPage() {
                 </Button>
               }
             />
+          ) : sortedCarExpenses.length === 0 ? (
+            <EmptyState
+              icon={Car}
+              title="No car expenses in this filter"
+              description="Try a different year or category, or clear the filter to see everything."
+              action={
+                <Button variant="outline" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              }
+            />
           ) : (
-            <>
-              <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="rounded-xl border border-line bg-panel p-4">
-                  <h3 className="mb-3 text-xs font-medium text-ink-muted">By year</h3>
-                  <RankedBars rows={carExpensesByYear.map((y) => ({ key: String(y.year), label: String(y.year), total: y.total }))} />
-                </div>
-                <div className="rounded-xl border border-line bg-panel p-4">
-                  <h3 className="mb-3 text-xs font-medium text-ink-muted">By category</h3>
-                  <RankedBars rows={carExpensesByCategory} />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                {sortedCarExpenses.length === 0 ? (
-                  <EmptyState
-                    icon={Car}
-                    title="No car expenses in this filter"
-                    description="Try a different year or category, or clear the filter to see everything."
-                    action={
-                      <Button variant="outline" onClick={clearFilters}>
-                        Clear filters
-                      </Button>
-                    }
+            <div className="flex flex-col gap-2">
+              <AnimatePresence>
+                {sortedCarExpenses.map((c) => (
+                  <CarExpenseRow
+                    key={c.id}
+                    carExpense={c}
+                    onClick={() => {
+                      setEditingCarExpense(c);
+                      setCarFormOpen(true);
+                    }}
                   />
-                ) : (
-                  <AnimatePresence>
-                    {sortedCarExpenses.map((c) => (
-                      <CarExpenseRow
-                        key={c.id}
-                        carExpense={c}
-                        onClick={() => {
-                          setEditingCarExpense(c);
-                          setCarFormOpen(true);
-                        }}
-                      />
-                    ))}
-                  </AnimatePresence>
-                )}
-              </div>
-            </>
+                ))}
+              </AnimatePresence>
+            </div>
           )}
         </section>
       </div>
