@@ -26,17 +26,31 @@ export function groupByYear<T>(items: T[], getDate: (item: T) => string, getAmou
 }
 
 /** A generic ranked total — reused for both "by year" and "by category"
- *  breakdowns, which are the same shape (a label and a sum) either way. */
+ *  breakdowns, which are the same shape (a key, a label and a sum) either
+ *  way. `key` is what a filter compares against (a category's enum value,
+ *  say); `label` is what's shown — they're the same string unless the
+ *  caller passes `getKey` to tell them apart. */
 export interface RankedTotal {
+  key: string;
   label: string;
   total: number;
 }
 
-export function groupByLabel<T>(items: T[], getLabel: (item: T) => string, getAmount: (item: T) => number): RankedTotal[] {
-  const byLabel = new Map<string, number>();
+export function groupByLabel<T>(
+  items: T[],
+  getLabel: (item: T) => string,
+  getAmount: (item: T) => number,
+  getKey: (item: T) => string = getLabel,
+): RankedTotal[] {
+  const byKey = new Map<string, RankedTotal>();
   for (const item of items) {
-    const label = getLabel(item);
-    byLabel.set(label, (byLabel.get(label) ?? 0) + getAmount(item));
+    const key = getKey(item);
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.total += getAmount(item);
+    } else {
+      byKey.set(key, { key, label: getLabel(item), total: getAmount(item) });
+    }
   }
-  return [...byLabel.entries()].map(([label, total]) => ({ label, total })).sort((a, b) => b.total - a.total);
+  return [...byKey.values()].sort((a, b) => b.total - a.total);
 }
