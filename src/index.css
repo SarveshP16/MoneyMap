@@ -1,0 +1,111 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,ital@9..144,300..700,0..1&family=Inter:wght@400..800&display=swap");
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------
+   MoneyMap design tokens.
+
+   Palette is a chart-room, not a dashboard: deep navy "ink" background
+   (a chart under a night light, not a neutral near-black), a warm
+   "parchment" surface reserved for exactly one hero moment, and three
+   functional accents — amber for the primary/route accent, emerald for
+   growth (income, savings, gains), coral for alerts (over budget,
+   outstanding splits). Fraunces carries headings and hero figures for
+   warmth; Inter carries UI text and tabular money figures for density
+   and alignment.
+------------------------------------------------------------------------ */
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #0d1321;
+  --color-ink-soft: #10182b;
+  --color-panel: #161d2f;
+  --color-panel-high: #1c2438;
+  --color-line: #263049;
+  --color-parchment: #f3eee3;
+  --color-parchment-dim: #e7e0d0;
+  --color-ink-on-parchment: #241f14;
+
+  --color-ink-muted: #8892ab;
+  --color-ink-faint: #5d6685;
+  --color-ink-bright: #eef1f8;
+
+  --color-amber: #e8a33d;
+  --color-amber-soft: #4a3821;
+  --color-emerald: #4fb286;
+  --color-emerald-soft: #1e3c33;
+  --color-coral: #e15a4b;
+  --color-coral-soft: #402322;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-ink);
+    color: var(--color-ink-bright);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Every monetary figure in the app uses this class: tabular figures so
+     amounts line up in lists, and the display face for personality. */
+  .figure {
+    font-family: var(--font-display);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .figure-sans {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  ::selection {
+    background: var(--color-amber);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-amber);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Thin contour-line texture for the hero panel — a handful of concentric
+   arcs suggesting elevation lines on a chart. Used in exactly one place;
+   see HeroPanel. */
+.contour-texture {
+  background-image:
+    repeating-radial-gradient(
+      ellipse at 15% 20%,
+      transparent 0,
+      transparent 26px,
+      rgba(36, 31, 20, 0.05) 27px,
+      transparent 28px
+    );
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}

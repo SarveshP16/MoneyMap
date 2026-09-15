@@ -1,0 +1,26 @@
+import {
+  Compass,
+  Receipt,
+  PieChart,
+  PiggyBank,
+  TrendingUp,
+  CalendarClock,
+  Landmark,
+  type LucideIcon,
+} from 'lucide-react';
+
+export interface NavItem {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+export const NAV_ITEMS: NavItem[] = [
+  { to: '/', label: 'Overview', icon: Compass },
+  { to: '/transactions', label: 'Transactions', icon: Receipt },
+  { to: '/budgets', label: 'Budgets', icon: PieChart },
+  { to: '/savings', label: 'Savings', icon: PiggyBank },
+  { to: '/investments', label: 'Investments', icon: TrendingUp },
+  { to: '/subscriptions', label: 'Subscriptions & bills', icon: CalendarClock },
+  { to: '/income', label: 'Income & tax', icon: Landmark },
+];
