@@ -24,6 +24,8 @@ const DEFAULT_STATE = {
   investments: [],
   subscriptions: [],
   incomeRecords: [],
+  purchases: [],
+  carExpenses: [],
   currency: 'usd',
 };
 
@@ -35,6 +37,8 @@ const COLLECTION_KEYS = [
   'investments',
   'subscriptions',
   'incomeRecords',
+  'purchases',
+  'carExpenses',
 ];
 
 async function loadState() {

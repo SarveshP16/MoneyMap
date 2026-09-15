@@ -3,7 +3,7 @@
 // / "Import data" (data_backup_service.dart), adapted to a browser
 // download/file-picker instead of the filesystem.
 
-import { CURRENCIES, type Category, type CurrencyCode, type IncomeRecord, type Investment, type PaymentMethod, type SavingsGoal, type Subscription, type Transaction } from './types';
+import { CURRENCIES, type CarExpense, type Category, type CurrencyCode, type IncomeRecord, type Investment, type PaymentMethod, type Purchase, type SavingsGoal, type Subscription, type Transaction } from './types';
 import type { FinanceBackupData } from '../store/useFinanceStore';
 import { formatIsoDate } from './dates';
 
@@ -59,6 +59,8 @@ export function parseBackup(raw: string): Partial<FinanceBackupData> {
   if (Array.isArray(obj.investments)) result.investments = obj.investments as Investment[];
   if (Array.isArray(obj.subscriptions)) result.subscriptions = obj.subscriptions as Subscription[];
   if (Array.isArray(obj.incomeRecords)) result.incomeRecords = obj.incomeRecords as IncomeRecord[];
+  if (Array.isArray(obj.purchases)) result.purchases = obj.purchases as Purchase[];
+  if (Array.isArray(obj.carExpenses)) result.carExpenses = obj.carExpenses as CarExpense[];
   if (typeof obj.currency === 'string' && obj.currency in CURRENCIES) result.currency = obj.currency as CurrencyCode;
 
   const hasAnyCollection = [
@@ -69,6 +71,8 @@ export function parseBackup(raw: string): Partial<FinanceBackupData> {
     result.investments,
     result.subscriptions,
     result.incomeRecords,
+    result.purchases,
+    result.carExpenses,
   ].some((c) => c != null);
   if (!hasAnyCollection && result.currency == null) {
     throw new Error('That backup file is empty.');
@@ -96,6 +100,8 @@ export function backupItemCount(data: Partial<FinanceBackupData>): number {
     (data.savingsGoals?.length ?? 0) +
     (data.investments?.length ?? 0) +
     (data.subscriptions?.length ?? 0) +
-    (data.incomeRecords?.length ?? 0)
+    (data.incomeRecords?.length ?? 0) +
+    (data.purchases?.length ?? 0) +
+    (data.carExpenses?.length ?? 0)
   );
 }

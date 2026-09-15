@@ -8,11 +8,13 @@ import {
   type TransactionFilter,
 } from '../lib/transactionFiltering';
 import type {
+  CarExpense,
   Category,
   CurrencyCode,
   IncomeRecord,
   Investment,
   PaymentMethod,
+  Purchase,
   SavingsGoal,
   Subscription,
   Transaction,
@@ -30,6 +32,8 @@ interface FinanceState {
   investments: Investment[];
   subscriptions: Subscription[];
   incomeRecords: IncomeRecord[];
+  purchases: Purchase[];
+  carExpenses: CarExpense[];
   currency: CurrencyCode;
   filter: TransactionFilter;
 
@@ -77,6 +81,16 @@ interface FinanceState {
   deleteIncomeRecord: (id: string) => void;
   restoreIncomeRecord: (r: IncomeRecord) => void;
 
+  addPurchase: (p: Omit<Purchase, 'id' | 'createdAt'>) => void;
+  updatePurchase: (p: Purchase) => void;
+  deletePurchase: (id: string) => void;
+  restorePurchase: (p: Purchase) => void;
+
+  addCarExpense: (c: Omit<CarExpense, 'id' | 'createdAt'>) => void;
+  updateCarExpense: (c: CarExpense) => void;
+  deleteCarExpense: (id: string) => void;
+  restoreCarExpense: (c: CarExpense) => void;
+
   setCurrency: (c: CurrencyCode) => void;
   applyFilter: (f: TransactionFilter) => void;
   clearFilter: () => void;
@@ -96,6 +110,8 @@ export interface FinanceBackupData {
   investments: Investment[];
   subscriptions: Subscription[];
   incomeRecords: IncomeRecord[];
+  purchases: Purchase[];
+  carExpenses: CarExpense[];
   currency: CurrencyCode;
 }
 
@@ -118,6 +134,10 @@ function readLegacyLocalStorage(): FinanceBackupData {
     investments: loadCollection<Investment>(LEGACY_LOCALSTORAGE_KEYS.investments),
     subscriptions: loadCollection<Subscription>(LEGACY_LOCALSTORAGE_KEYS.subscriptions),
     incomeRecords: loadCollection<IncomeRecord>(LEGACY_LOCALSTORAGE_KEYS.incomeRecords),
+    // Purchases and car expenses didn't exist in MoneyMap's old
+    // localStorage-only days — nothing to recover, they simply start empty.
+    purchases: [],
+    carExpenses: [],
     currency: loadValue<CurrencyCode>('currency', 'usd'),
   };
 }
@@ -148,6 +168,8 @@ function syncToServer(get: () => FinanceState) {
     investments: s.investments,
     subscriptions: s.subscriptions,
     incomeRecords: s.incomeRecords,
+    purchases: s.purchases,
+    carExpenses: s.carExpenses,
     currency: s.currency,
   }).catch((err: unknown) => {
     console.error('Failed to sync to server', err);
@@ -165,6 +187,8 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   investments: [],
   subscriptions: [],
   incomeRecords: [],
+  purchases: [],
+  carExpenses: [],
   currency: 'usd',
   filter: EMPTY_FILTER,
 
@@ -202,6 +226,8 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
         investments: server.investments,
         subscriptions: server.subscriptions,
         incomeRecords: server.incomeRecords,
+        purchases: server.purchases,
+        carExpenses: server.carExpenses,
         currency: server.currency,
       });
     } catch (err) {
@@ -333,6 +359,42 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     syncToServer(get);
   },
 
+  addPurchase: (p) => {
+    const record: Purchase = { ...p, id: generateLocalId(), createdAt: new Date().toISOString() };
+    set({ purchases: [...get().purchases, record] });
+    syncToServer(get);
+  },
+  updatePurchase: (p) => {
+    set({ purchases: get().purchases.map((x) => (x.id === p.id ? p : x)) });
+    syncToServer(get);
+  },
+  deletePurchase: (id) => {
+    set({ purchases: get().purchases.filter((x) => x.id !== id) });
+    syncToServer(get);
+  },
+  restorePurchase: (p) => {
+    set({ purchases: [...get().purchases, p] });
+    syncToServer(get);
+  },
+
+  addCarExpense: (c) => {
+    const record: CarExpense = { ...c, id: generateLocalId(), createdAt: new Date().toISOString() };
+    set({ carExpenses: [...get().carExpenses, record] });
+    syncToServer(get);
+  },
+  updateCarExpense: (c) => {
+    set({ carExpenses: get().carExpenses.map((x) => (x.id === c.id ? c : x)) });
+    syncToServer(get);
+  },
+  deleteCarExpense: (id) => {
+    set({ carExpenses: get().carExpenses.filter((x) => x.id !== id) });
+    syncToServer(get);
+  },
+  restoreCarExpense: (c) => {
+    set({ carExpenses: [...get().carExpenses, c] });
+    syncToServer(get);
+  },
+
   setCurrency: (c) => {
     set({ currency: c });
     syncToServer(get);
@@ -349,6 +411,8 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     if (data.investments) updates.investments = data.investments;
     if (data.subscriptions) updates.subscriptions = data.subscriptions;
     if (data.incomeRecords) updates.incomeRecords = data.incomeRecords;
+    if (data.purchases) updates.purchases = data.purchases;
+    if (data.carExpenses) updates.carExpenses = data.carExpenses;
     if (data.currency) updates.currency = data.currency;
     set(updates);
     syncToServer(get);

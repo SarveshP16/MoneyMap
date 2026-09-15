@@ -148,6 +148,37 @@ export interface IncomeRecord {
   createdAt: string;
 }
 
+/** A big-ticket purchase — laptops, furniture, appliances, anything worth
+ *  tracking outside the everyday expense noise in Transactions. */
+export interface Purchase {
+  id: string;
+  name: string;
+  amount: number;
+  date: string;
+  note?: string;
+  createdAt: string;
+}
+
+export type CarExpenseCategory = 'rego' | 'service' | 'parts';
+
+export const CAR_EXPENSE_CATEGORIES: CarExpenseCategory[] = ['rego', 'service', 'parts'];
+
+export const carExpenseCategoryLabel: Record<CarExpenseCategory, string> = {
+  rego: 'Rego',
+  service: 'Service',
+  parts: 'Parts',
+};
+
+export interface CarExpense {
+  id: string;
+  name: string;
+  amount: number;
+  date: string;
+  category: CarExpenseCategory;
+  note?: string;
+  createdAt: string;
+}
+
 /** monthlyAmount getter from Subscription — cost normalised to a monthly figure. */
 export function subscriptionMonthlyAmount(s: Subscription): number {
   return s.amount * billingCycleMonthlyFactor[s.billingCycle];

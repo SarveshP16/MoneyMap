@@ -9,6 +9,7 @@ import { BudgetsPage } from './features/budgets/BudgetsPage';
 import { SavingsPage } from './features/savings/SavingsPage';
 import { InvestmentsPage } from './features/investments/InvestmentsPage';
 import { SubscriptionsPage } from './features/subscriptions/SubscriptionsPage';
+import { PurchasesExpensesPage } from './features/purchases/PurchasesExpensesPage';
 import { IncomePage } from './features/income/IncomePage';
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="savings" element={<SavingsPage />} />
             <Route path="investments" element={<InvestmentsPage />} />
             <Route path="subscriptions" element={<SubscriptionsPage />} />
+            <Route path="purchases" element={<PurchasesExpensesPage />} />
             <Route path="income" element={<IncomePage />} />
           </Route>
         </Routes>
