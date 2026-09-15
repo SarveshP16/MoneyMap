@@ -92,6 +92,7 @@ export function OverviewPage() {
               value={owed}
               format={fmt}
               tone="emerald"
+              to="/owed"
             />
             <StatTile
               icon={Landmark}
