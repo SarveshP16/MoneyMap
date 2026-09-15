@@ -9,6 +9,7 @@ import { formatCurrency, currencyOf } from '../../lib/currency';
 import { applyTransactionFilter, isFilterActive } from '../../lib/transactionFiltering';
 import { totalOwedToYou, totalSpent, totalSavings, totalInvestmentsValue, monthlyTotal, totalIncomeForCurrentFinancialYear } from '../../lib/financeTotals';
 import { TransactionRow } from '../transactions/TransactionRow';
+import { TopCategories } from './TopCategories';
 import { Button } from '../../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 
@@ -116,38 +117,42 @@ export function OverviewPage() {
           />
         </div>
 
-        <div className="mt-8">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-lg font-semibold text-ink-bright">Recent activity</h2>
-            <button onClick={() => navigate('/transactions')} className="text-sm text-amber hover:text-amber/80">
-              View all
-            </button>
-          </div>
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <TopCategories transactions={filtered} categories={categories} />
 
-          {recent.length === 0 ? (
-            <EmptyState
-              icon={Receipt}
-              title="No expenses yet"
-              description="Log your first expense to start seeing it charted here."
-              action={
-                <Button variant="outline" onClick={() => navigate('/transactions')}>
-                  Add an expense
-                </Button>
-              }
-            />
-          ) : (
-            <div className="flex flex-col gap-2">
-              {recent.map((t) => (
-                <TransactionRow
-                  key={t.id}
-                  transaction={t}
-                  categoryName={categories.find((c) => c.id === t.categoryId)?.name}
-                  paymentMethodName={paymentMethods.find((m) => m.id === t.paymentMethodId)?.name}
-                  onClick={() => navigate('/transactions')}
-                />
-              ))}
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-display text-lg font-semibold text-ink-bright">Recent activity</h2>
+              <button onClick={() => navigate('/transactions')} className="text-sm text-amber hover:text-amber/80">
+                View all
+              </button>
             </div>
-          )}
+
+            {recent.length === 0 ? (
+              <EmptyState
+                icon={Receipt}
+                title="No expenses yet"
+                description="Log your first expense to start seeing it charted here."
+                action={
+                  <Button variant="outline" onClick={() => navigate('/transactions')}>
+                    Add an expense
+                  </Button>
+                }
+              />
+            ) : (
+              <div className="flex flex-col gap-2">
+                {recent.map((t) => (
+                  <TransactionRow
+                    key={t.id}
+                    transaction={t}
+                    categoryName={categories.find((c) => c.id === t.categoryId)?.name}
+                    paymentMethodName={paymentMethods.find((m) => m.id === t.paymentMethodId)?.name}
+                    onClick={() => navigate('/transactions')}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
