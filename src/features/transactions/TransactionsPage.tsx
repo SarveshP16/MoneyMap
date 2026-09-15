@@ -63,7 +63,7 @@ export function TransactionsPage() {
         subtitle={`${searched.length} expense${searched.length === 1 ? '' : 's'} · ${formatCurrency(totalSpent(searched), currency)}`}
         actions={
           <>
-            <IconButton onClick={() => setFilterOpen(true)} className={filterActive ? 'text-amber' : undefined} aria-label="Filter">
+            <IconButton onClick={() => setFilterOpen(true)} className={filterActive ? 'text-verdigris' : undefined} aria-label="Filter">
               <SlidersHorizontal size={18} />
             </IconButton>
             <Button icon={<Plus size={16} />} onClick={openNew}>
@@ -83,13 +83,13 @@ export function TransactionsPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search expenses…"
-              className="w-full rounded-lg border border-line bg-ink-soft py-2.5 pl-9 pr-3 text-sm text-ink-bright placeholder:text-ink-faint outline-none transition-colors focus:border-amber"
+              className="w-full rounded-lg border border-line bg-ink-soft py-2.5 pl-9 pr-3 text-sm text-ink-bright placeholder:text-ink-faint outline-none transition-colors focus:border-verdigris"
             />
           </div>
         )}
 
         {filterActive && (
-          <div className="mb-4 rounded-lg border border-amber/30 bg-amber-soft/40 px-4 py-2 text-sm text-ink-bright">
+          <div className="mb-4 rounded-lg border border-verdigris/30 bg-verdigris-soft/40 px-4 py-2 text-sm text-ink-bright">
             Filter active — showing {filtered.length} of {transactions.length} expenses.
           </div>
         )}

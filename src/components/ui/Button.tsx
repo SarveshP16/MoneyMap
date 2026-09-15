@@ -3,8 +3,8 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 type Variant = 'primary' | 'ghost' | 'outline' | 'danger';
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: 'bg-amber text-ink-on-parchment hover:brightness-110 font-semibold',
-  outline: 'border border-line text-ink-bright hover:border-amber/50 hover:bg-panel',
+  primary: 'bg-verdigris text-ink-on-parchment hover:brightness-110 font-semibold',
+  outline: 'border border-line text-ink-bright hover:border-verdigris/50 hover:bg-panel',
   ghost: 'text-ink-muted hover:text-ink-bright hover:bg-panel',
   danger: 'text-coral hover:bg-coral-soft',
 };

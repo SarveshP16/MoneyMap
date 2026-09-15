@@ -75,7 +75,7 @@ export function OwedToYouPage() {
                 </div>
                 <button
                   onClick={() => markAllPaid(group)}
-                  className="text-xs font-medium text-amber hover:text-amber/80"
+                  className="text-xs font-medium text-verdigris hover:text-verdigris/80"
                 >
                   Mark all as paid
                 </button>

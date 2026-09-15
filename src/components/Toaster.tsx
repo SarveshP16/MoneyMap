@@ -24,7 +24,7 @@ export function Toaster() {
                   toast.onAction?.();
                   dismiss(toast.id);
                 }}
-                className="font-semibold text-amber hover:text-amber/80"
+                className="font-semibold text-verdigris hover:text-verdigris/80"
               >
                 {toast.actionLabel}
               </button>

@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion';
 
-type Tone = 'amber' | 'emerald' | 'coral';
+type Tone = 'verdigris' | 'emerald' | 'coral';
 
-const FILL: Record<Tone, string> = { amber: 'bg-amber', emerald: 'bg-emerald', coral: 'bg-coral' };
+const FILL: Record<Tone, string> = { verdigris: 'bg-verdigris', emerald: 'bg-emerald', coral: 'bg-coral' };
 
 /** A route/trail-styled progress bar — a marker travels along the filled
  *  edge, echoing MoneyMap's wayfinding motif. Used for budget and savings
  *  goal progress, the two places "how far along" genuinely matters. */
-export function Trail({ progress, tone = 'amber' }: { progress: number; tone?: Tone }) {
+export function Trail({ progress, tone = 'verdigris' }: { progress: number; tone?: Tone }) {
   const pct = Math.max(0, Math.min(1, progress)) * 100;
   return (
     <div className="relative h-1.5 w-full rounded-full bg-line/70">

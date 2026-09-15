@@ -25,7 +25,7 @@ function yearOf(iso: string) {
 }
 
 const selectClasses =
-  'rounded-lg border border-line bg-ink-soft px-2.5 py-2 text-xs text-ink-bright outline-none transition-colors focus:border-amber cursor-pointer';
+  'rounded-lg border border-line bg-ink-soft px-2.5 py-2 text-xs text-ink-bright outline-none transition-colors focus:border-verdigris cursor-pointer';
 
 function TotalCard({
   icon: Icon,
@@ -136,7 +136,7 @@ export function PurchasesExpensesPage() {
                   </option>
                 ))}
               </select>
-              {hasFilter && <IconButton onClick={clearFilters} aria-label="Clear filters" className="text-amber"><X size={16} /></IconButton>}
+              {hasFilter && <IconButton onClick={clearFilters} aria-label="Clear filters" className="text-verdigris"><X size={16} /></IconButton>}
             </div>
           ) : undefined
         }
@@ -154,7 +154,7 @@ export function PurchasesExpensesPage() {
         <section>
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ShoppingBag size={16} className="text-amber" />
+              <ShoppingBag size={16} className="text-verdigris" />
               <h2 className="font-display text-lg font-semibold text-ink-bright">Purchases</h2>
             </div>
             <Button
@@ -212,7 +212,7 @@ export function PurchasesExpensesPage() {
         <section>
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Car size={16} className="text-amber" />
+              <Car size={16} className="text-verdigris" />
               <h2 className="font-display text-lg font-semibold text-ink-bright">Car expenses</h2>
             </div>
             <Button

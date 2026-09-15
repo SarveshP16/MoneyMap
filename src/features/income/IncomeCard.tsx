@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { EditHint } from '../../components/ui/EditHint';
 import { currencyOf, formatCurrency } from '../../lib/currency';
 import { formatIsoDate } from '../../lib/dates';
 import { financialYearLabel } from '../../lib/financeTotals';
@@ -15,7 +16,7 @@ export function IncomeCard({ record, onClick }: { record: IncomeRecord; onClick:
       layout
       onClick={onClick}
       whileHover={{ y: -2 }}
-      className="flex w-full items-start justify-between gap-3 rounded-xl border border-line bg-panel p-4 text-left transition-colors hover:border-amber/30"
+      className="ledger-tab flex w-full items-start justify-between gap-3 rounded-xl border border-line bg-panel p-4 text-left transition-colors hover:border-verdigris/30"
     >
       <div className="min-w-0">
         <p className="truncate text-sm font-medium text-ink-bright">{record.sourceName}</p>
@@ -28,7 +29,10 @@ export function IncomeCard({ record, onClick }: { record: IncomeRecord; onClick:
           <p className="mt-1 text-xs text-ink-faint">Tax withheld: {formatCurrency(record.taxWithheld, currency)}</p>
         )}
       </div>
-      <p className="figure-sans shrink-0 text-sm font-semibold text-ink-bright">{formatCurrency(record.grossAmount, currency)}</p>
+      <div className="flex shrink-0 items-center gap-2.5">
+        <p className="figure-sans text-sm font-semibold text-ink-bright">{formatCurrency(record.grossAmount, currency)}</p>
+        <EditHint />
+      </div>
     </motion.button>
   );
 }

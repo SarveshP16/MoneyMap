@@ -16,11 +16,11 @@ export function StatTile({
   value: number;
   format: (n: number) => string;
   to?: string;
-  tone?: 'default' | 'emerald' | 'coral';
+  tone?: 'default' | 'emerald' | 'coral' | 'brass';
 }) {
   const navigate = useNavigate();
   const toneClasses =
-    tone === 'emerald' ? 'text-emerald' : tone === 'coral' ? 'text-coral' : 'text-ink-bright';
+    tone === 'emerald' ? 'text-emerald' : tone === 'coral' ? 'text-coral' : tone === 'brass' ? 'text-brass' : 'text-ink-bright';
 
   return (
     <motion.button
@@ -29,7 +29,7 @@ export function StatTile({
       whileHover={to ? { y: -2 } : undefined}
       whileTap={to ? { scale: 0.985 } : undefined}
       className={`flex flex-col gap-3 rounded-xl border border-line bg-panel p-4 text-left transition-colors ${
-        to ? 'cursor-pointer hover:border-amber/40' : 'cursor-default'
+        to ? 'cursor-pointer hover:border-verdigris/40' : 'cursor-default'
       }`}
     >
       <div className="flex items-center gap-2 text-ink-muted">

@@ -40,7 +40,7 @@ export function TopCategories({ transactions, categories }: { transactions: Tran
               </div>
               <div className="h-2 w-full rounded-full bg-ink-soft">
                 <motion.div
-                  className="h-full rounded-full bg-amber"
+                  className="h-full rounded-full bg-verdigris"
                   initial={{ width: 0 }}
                   animate={{ width: max > 0 ? `${(r.amount / max) * 100}%` : '0%' }}
                   transition={{ type: 'spring', stiffness: 120, damping: 22 }}

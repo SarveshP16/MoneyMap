@@ -7,8 +7,8 @@ export function CurrencyPicker({ compact = false }: { compact?: boolean }) {
   const setCurrency = useFinanceStore((s) => s.setCurrency);
 
   return (
-    <label className="flex items-center gap-2 rounded-lg border border-line bg-panel px-2.5 py-2 text-xs text-ink-muted transition-colors hover:border-amber/40">
-      <Coins size={14} className="shrink-0 text-amber" />
+    <label className="flex items-center gap-2 rounded-lg border border-line bg-panel px-2.5 py-2 text-xs text-ink-muted transition-colors hover:border-verdigris/40">
+      <Coins size={14} className="shrink-0 text-verdigris" />
       <select
         value={currency}
         onChange={(e) => setCurrency(e.target.value as typeof currency)}

@@ -148,7 +148,7 @@ export function TransactionForm({
         <button
           type="button"
           onClick={() => setShowMore((v) => !v)}
-          className="flex items-center gap-1 self-start text-sm font-semibold text-amber"
+          className="flex items-center gap-1 self-start text-sm font-semibold text-verdigris"
         >
           {showMore ? 'Hide more options' : 'More options'}
           {showMore ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -174,7 +174,7 @@ export function TransactionForm({
                     }
                   }}
                   title="Fill in half of the expense amount"
-                  className="shrink-0 rounded-lg border border-line px-3 text-xs font-medium text-ink-muted transition-colors hover:border-amber/40 hover:text-ink-bright"
+                  className="shrink-0 rounded-lg border border-line px-3 text-xs font-medium text-ink-muted transition-colors hover:border-verdigris/40 hover:text-ink-bright"
                 >
                   Split in half
                 </button>

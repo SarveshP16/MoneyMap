@@ -2,16 +2,20 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------
-   MoneyMap design tokens.
+   MoneyMap design tokens — "Verdigris Ledger".
 
-   Palette is a chart-room, not a dashboard: deep navy "ink" background
-   (a chart under a night light, not a neutral near-black), a warm
-   "parchment" surface reserved for exactly one hero moment, and three
-   functional accents — amber for the primary/route accent, emerald for
-   growth (income, savings, gains), coral for alerts (over budget,
-   outstanding splits). Fraunces carries headings and hero figures for
-   warmth; Inter carries UI text and tabular money figures for density
-   and alignment.
+   A chart-room built out of ledger-book materials rather than a generic
+   dashboard: deep navy "ink" background (a chart under a night light,
+   not a neutral near-black), a warm "parchment" surface reserved for
+   exactly one hero moment, and four functional accents — verdigris (the
+   primary/route accent, an oxidized-copper green), brass (a secondary
+   accent for supporting tags and details, an aged-gold), emerald for
+   growth (income, savings, gains), and coral for alerts (over budget,
+   outstanding splits). Verdigris and brass exist to work together —
+   brass is the trim, verdigris is the metal — so reach for brass on
+   secondary details (a tag, a small label) rather than as a second
+   primary. Fraunces carries headings and hero figures for warmth; Inter
+   carries UI text and tabular money figures for density and alignment.
 ------------------------------------------------------------------------ */
 @theme {
   --font-display: "Fraunces", ui-serif, Georgia, serif;
@@ -30,8 +34,10 @@
   --color-ink-faint: #5d6685;
   --color-ink-bright: #eef1f8;
 
-  --color-amber: #e8a33d;
-  --color-amber-soft: #4a3821;
+  --color-verdigris: #4fa08f;
+  --color-verdigris-soft: #1b3934;
+  --color-brass: #c99a4a;
+  --color-brass-soft: #3b2f18;
   --color-emerald: #4fb286;
   --color-emerald-soft: #1e3c33;
   --color-coral: #e15a4b;
@@ -44,12 +50,13 @@
    Fraunces) with white cards, and the parchment hero panel now reading as
    a deeper, richer surface than its surroundings instead of a lit one.
    Every accent is deepened from its dark-mode value for contrast on a
-   light ground — same hues, same meaning (amber = primary/route, emerald
-   = growth, coral = alert), just recalibrated for the surface they sit
-   on, the way a real ink would read differently under different light.
-   Toggled via [data-theme="light"] on <html>; every component here
-   already goes through these tokens, so nothing outside this file needs
-   to know a light mode exists. */
+   light ground — same hues, same meaning (verdigris = primary/route,
+   brass = secondary/trim, emerald = growth, coral = alert), just
+   recalibrated for the surface they sit on, the way a real ink would
+   read differently under different light. Toggled via
+   [data-theme="light"] on <html>; every component here already goes
+   through these tokens, so nothing outside this file needs to know a
+   light mode exists. */
 [data-theme="light"] {
   --color-ink: #f3f4f8;
   --color-ink-soft: #e7eaf0;
@@ -64,8 +71,10 @@
   --color-ink-faint: #98a0b3;
   --color-ink-bright: #12141c;
 
-  --color-amber: #a3650f;
-  --color-amber-soft: #fbebd2;
+  --color-verdigris: #2f6f58;
+  --color-verdigris-soft: #dceae3;
+  --color-brass: #8c6a22;
+  --color-brass-soft: #f3e7c9;
   --color-emerald: #0e7a4a;
   --color-emerald-soft: #e1f3ea;
   --color-coral: #b83a2c;
@@ -108,12 +117,12 @@
   }
 
   ::selection {
-    background: var(--color-amber);
+    background: var(--color-verdigris);
     color: var(--color-ink);
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-amber);
+    outline: 2px solid var(--color-verdigris);
     outline-offset: 2px;
   }
 }
@@ -146,4 +155,23 @@
 }
 .no-scrollbar {
   scrollbar-width: none;
+}
+
+/* The ledger's signature mark — a short brass tab along a card's top
+   edge, standing in for the little pasted tab-index labels on a physical
+   ledger's pages. Applied to every entry card (CategoryCard, IncomeCard,
+   PurchaseRow, ...) so brass reads as "this is a record" throughout the
+   app, distinct from verdigris's job as the interactive/primary accent. */
+.ledger-tab {
+  position: relative;
+}
+.ledger-tab::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  width: 22px;
+  height: 3px;
+  background: var(--color-brass);
+  border-radius: 0 0 2px 2px;
 }

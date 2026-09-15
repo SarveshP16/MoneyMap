@@ -23,7 +23,7 @@ export function ThemeToggle() {
           onClick={() => setMode(opt.mode)}
           title={opt.label}
           className={`flex flex-1 items-center justify-center rounded-md py-1.5 transition-colors ${
-            mode === opt.mode ? 'bg-amber text-ink-on-parchment' : 'text-ink-muted hover:text-ink-bright'
+            mode === opt.mode ? 'bg-verdigris text-ink-on-parchment' : 'text-ink-muted hover:text-ink-bright'
           }`}
         >
           <opt.icon size={14} />
