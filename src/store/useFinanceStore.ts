@@ -64,6 +64,23 @@ interface FinanceState {
   setCurrency: (c: CurrencyCode) => void;
   applyFilter: (f: TransactionFilter) => void;
   clearFilter: () => void;
+
+  /** Replaces every collection wholesale — the backend for Settings'
+   *  "Import data". Omitted collections are left untouched rather than
+   *  cleared, so a backup file missing a newer field/collection can still
+   *  be restored without wiping everything else. */
+  restoreAll: (data: Partial<FinanceBackupData>) => void;
+}
+
+export interface FinanceBackupData {
+  transactions: Transaction[];
+  categories: Category[];
+  paymentMethods: PaymentMethod[];
+  savingsGoals: SavingsGoal[];
+  investments: Investment[];
+  subscriptions: Subscription[];
+  incomeRecords: IncomeRecord[];
+  currency: CurrencyCode;
 }
 
 // Persists a whole collection to localStorage after every mutation,
@@ -238,4 +255,41 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   },
   applyFilter: (f) => set({ filter: f }),
   clearFilter: () => set({ filter: EMPTY_FILTER }),
+
+  restoreAll: (data) => {
+    const updates: Partial<FinanceState> = {};
+    if (data.transactions) {
+      persist('transactions', data.transactions);
+      updates.transactions = data.transactions;
+    }
+    if (data.categories) {
+      persist('categories', data.categories);
+      updates.categories = data.categories;
+    }
+    if (data.paymentMethods) {
+      persist('payment_methods', data.paymentMethods);
+      updates.paymentMethods = data.paymentMethods;
+    }
+    if (data.savingsGoals) {
+      persist('savings_goals', data.savingsGoals);
+      updates.savingsGoals = data.savingsGoals;
+    }
+    if (data.investments) {
+      persist('investments', data.investments);
+      updates.investments = data.investments;
+    }
+    if (data.subscriptions) {
+      persist('subscriptions', data.subscriptions);
+      updates.subscriptions = data.subscriptions;
+    }
+    if (data.incomeRecords) {
+      persist('income', data.incomeRecords);
+      updates.incomeRecords = data.incomeRecords;
+    }
+    if (data.currency) {
+      saveValue('currency', data.currency);
+      updates.currency = data.currency;
+    }
+    set(updates);
+  },
 }));

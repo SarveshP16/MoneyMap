@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { Logo } from './Logo';
 import { NAV_ITEMS } from './nav';
 import { CurrencyPicker } from '../ui/CurrencyPicker';
+import { DataBackup } from '../ui/DataBackup';
 
 export function MobileNav({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
@@ -53,8 +54,9 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
                 </NavLink>
               ))}
             </nav>
-            <div className="p-3">
+            <div className="flex flex-col gap-2 p-3">
               <CurrencyPicker />
+              <DataBackup />
             </div>
           </motion.aside>
         </>
