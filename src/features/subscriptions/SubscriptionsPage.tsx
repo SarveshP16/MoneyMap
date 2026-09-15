@@ -9,6 +9,7 @@ import { currencyOf, formatCurrency } from '../../lib/currency';
 import type { Subscription, SubscriptionKind } from '../../lib/types';
 import { SubscriptionCard } from './SubscriptionCard';
 import { SubscriptionForm } from './SubscriptionForm';
+import { UpcomingBills } from './UpcomingBills';
 
 function Section({
   title,
@@ -79,6 +80,7 @@ export function SubscriptionsPage() {
           />
         ) : (
           <>
+            <UpcomingBills />
             <Section
               title="Subscriptions"
               items={subscriptions}

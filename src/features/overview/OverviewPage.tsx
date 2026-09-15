@@ -12,6 +12,8 @@ import { TransactionRow } from '../transactions/TransactionRow';
 import { TopCategories } from './TopCategories';
 import { Button } from '../../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
+import { BudgetAlerts } from '../budgets/BudgetAlerts';
+import { UpcomingBills } from '../subscriptions/UpcomingBills';
 
 export function OverviewPage() {
   const navigate = useNavigate();
@@ -67,6 +69,11 @@ export function OverviewPage() {
       />
 
       <div className="px-5 py-6 sm:px-8">
+        <div className="mb-5 flex flex-col gap-4">
+          <BudgetAlerts />
+          <UpcomingBills />
+        </div>
+
         {filterActive && (
           <div className="mb-5 flex items-center justify-between rounded-lg border border-verdigris/30 bg-verdigris-soft/40 px-4 py-2.5 text-sm text-ink-bright">
             <span>Totals reflect the active filter</span>

@@ -14,7 +14,7 @@
 //
 // Bump VERSION whenever this file's caching behavior changes materially —
 // it names the caches, so a bump makes `activate` clean out the old ones.
-const VERSION = 'v2';
+const VERSION = 'v3';
 const SHELL_CACHE = `moneymap-shell-${VERSION}`;
 const RUNTIME_CACHE = `moneymap-runtime-${VERSION}`;
 
@@ -93,6 +93,21 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() => cached);
       return cached || network;
+    }),
+  );
+});
+
+// Bill/renewal and budget alerts (useNotifications.ts) are shown via this
+// worker's registration.showNotification — clicking one should bring
+// MoneyMap to the front rather than just dismissing it.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ('focus' in client) return client.focus();
+      }
+      return self.clients.openWindow ? self.clients.openWindow('/') : undefined;
     }),
   );
 });

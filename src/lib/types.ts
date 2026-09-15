@@ -132,6 +132,11 @@ export interface Subscription {
   kind: SubscriptionKind;
   startDate?: string;
   endDate?: string;
+  /** The due date (ISO, date-only) of the most recent cycle logged as a
+   *  transaction via "Log payment" — lets the Upcoming list tell an
+   *  already-recorded due date apart from one still waiting on you,
+   *  without needing to search transactions for a matching entry. */
+  lastLoggedDate?: string;
   createdAt: string;
 }
 
