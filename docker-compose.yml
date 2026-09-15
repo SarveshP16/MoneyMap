@@ -1,0 +1,17 @@
+services:
+  server:
+    build: ./server
+    volumes:
+      - moneymap-data:/data
+    restart: unless-stopped
+
+  moneymap:
+    build: .
+    ports:
+      - "8090:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  moneymap-data:
