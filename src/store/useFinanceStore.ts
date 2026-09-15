@@ -86,6 +86,10 @@ interface FinanceState {
   updateSubscription: (s: Subscription) => void;
   deleteSubscription: (id: string) => void;
   restoreSubscription: (s: Subscription) => void;
+  /** Creates a transaction for one due cycle of `subscription` and marks
+   *  that cycle logged, in one state update — the "Log payment" action on
+   *  the Upcoming list. */
+  logSubscriptionPayment: (subscription: Subscription, dueDateIso: string) => void;
 
   addIncomeRecord: (r: Omit<IncomeRecord, 'id' | 'createdAt'>) => void;
   updateIncomeRecord: (r: IncomeRecord) => void;
@@ -390,6 +394,22 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   },
   restoreSubscription: (s) => {
     set({ subscriptions: [...get().subscriptions, s] });
+    syncToServer(get, set);
+  },
+  logSubscriptionPayment: (subscription, dueDateIso) => {
+    const record: Transaction = {
+      id: generateLocalId(),
+      name: subscription.name,
+      date: dueDateIso,
+      amount: subscription.amount,
+      splitPaidBack: false,
+      movedToCreditCard: false,
+      createdAt: new Date().toISOString(),
+    };
+    set({
+      transactions: [...get().transactions, record],
+      subscriptions: get().subscriptions.map((x) => (x.id === subscription.id ? { ...x, lastLoggedDate: dueDateIso } : x)),
+    });
     syncToServer(get, set);
   },
 
