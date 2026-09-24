@@ -191,6 +191,11 @@ React 19 · TypeScript · Vite · Tailwind CSS v4 · Zustand · Framer Motion ·
 
 A dark "chart room" palette (deep ink, verdigris accents, one warm parchment hero panel) with a wayfinding motif: a marker travels along budget and savings progress bars, because this is, literally, a map of where your money goes. The token system lives in [`src/index.css`](src/index.css).
 
+## Support
+
+If MoneyMap is useful to you, you can support its development on Ko-fi:
+[ko-fi.com/crystaxit](https://ko-fi.com/crystaxit).
+
 ## License
 
 [MIT](LICENSE) © 2026 Sarvesh Pandit
