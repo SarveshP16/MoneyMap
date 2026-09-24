@@ -1,13 +1,15 @@
 import { create } from 'zustand';
 import { fetchState, pushState, type ServerState } from '../lib/api';
 import { generateLocalId } from '../lib/id';
-import { loadCollection, loadValue, saveValue } from '../lib/storage';
+import { loadValue, saveValue } from '../lib/storage';
 import { useToastStore } from './useToastStore';
 import {
   EMPTY_FILTER,
   type TransactionFilter,
 } from '../lib/transactionFiltering';
 import type {
+  BankAllocation,
+  BankColumn,
   CarExpense,
   Category,
   CurrencyCode,
@@ -45,14 +47,19 @@ interface FinanceState {
   incomeRecords: IncomeRecord[];
   purchases: Purchase[];
   carExpenses: CarExpense[];
+  bankAllocations: BankAllocation[];
+  bankColumns: BankColumn[];
   currency: CurrencyCode;
   filter: TransactionFilter;
 
-  /** Loads from the server once at startup. If the server has never been
-   *  written to (a brand-new container/volume) and this browser still has
-   *  data from MoneyMap's old localStorage-only days, that data is
-   *  uploaded as the starting state instead of being silently orphaned. */
-  init: () => Promise<void>;
+  /** The profile (Me / Partner / Shared) this store's data belongs to —
+   *  set once by `init`, then used by every subsequent server call so
+   *  mutations don't each need it threaded through. */
+  profileId: string | null;
+
+  /** Loads the given ledger from the server — on startup and whenever the
+   *  active ledger changes. */
+  init: (profileId: string) => Promise<void>;
   /** Re-fetches from the server and overwrites local collections — what
    *  the sync-polling hook calls so a change made on another device
    *  actually shows up here. */
@@ -106,6 +113,21 @@ interface FinanceState {
   deleteCarExpense: (id: string) => void;
   restoreCarExpense: (c: CarExpense) => void;
 
+  /** Returns the new row's id so the page can focus it. */
+  addBankAllocation: (a: Omit<BankAllocation, 'id' | 'createdAt'>) => string;
+  updateBankAllocation: (a: BankAllocation) => void;
+  deleteBankAllocation: (id: string) => void;
+  /** Puts a deleted row back where it was — row order is meaningful in the
+   *  Banks table, unlike the other collections, which are sorted on display. */
+  restoreBankAllocation: (a: BankAllocation, index: number) => void;
+
+  addBankColumn: (c: Omit<BankColumn, 'id' | 'createdAt'>) => void;
+  updateBankColumn: (c: BankColumn) => void;
+  /** Rows keep their value for a deleted column (under its old id), so
+   *  Undo brings the data back with it. */
+  deleteBankColumn: (id: string) => void;
+  restoreBankColumn: (c: BankColumn, index: number) => void;
+
   setCurrency: (c: CurrencyCode) => void;
   applyFilter: (f: TransactionFilter) => void;
   clearFilter: () => void;
@@ -115,6 +137,9 @@ interface FinanceState {
    *  cleared, so a backup file missing a newer field/collection can still
    *  be restored without wiping everything else. */
   restoreAll: (data: Partial<FinanceBackupData>) => void;
+  /** Drops all loaded data and this device's offline caches of it — on
+   *  sign-out, so the next account here never sees the previous one's. */
+  reset: () => void;
 }
 
 export interface FinanceBackupData {
@@ -127,49 +152,17 @@ export interface FinanceBackupData {
   incomeRecords: IncomeRecord[];
   purchases: Purchase[];
   carExpenses: CarExpense[];
+  bankAllocations: BankAllocation[];
+  bankColumns: BankColumn[];
   currency: CurrencyCode;
 }
 
-const LEGACY_LOCALSTORAGE_KEYS = {
-  transactions: 'transactions',
-  categories: 'categories',
-  paymentMethods: 'payment_methods',
-  savingsGoals: 'savings_goals',
-  investments: 'investments',
-  subscriptions: 'subscriptions',
-  incomeRecords: 'income',
-} as const;
-
-function readLegacyLocalStorage(): FinanceBackupData {
-  return {
-    transactions: loadCollection<Transaction>(LEGACY_LOCALSTORAGE_KEYS.transactions),
-    categories: loadCollection<Category>(LEGACY_LOCALSTORAGE_KEYS.categories),
-    paymentMethods: loadCollection<PaymentMethod>(LEGACY_LOCALSTORAGE_KEYS.paymentMethods),
-    savingsGoals: loadCollection<SavingsGoal>(LEGACY_LOCALSTORAGE_KEYS.savingsGoals),
-    investments: loadCollection<Investment>(LEGACY_LOCALSTORAGE_KEYS.investments),
-    subscriptions: loadCollection<Subscription>(LEGACY_LOCALSTORAGE_KEYS.subscriptions),
-    incomeRecords: loadCollection<IncomeRecord>(LEGACY_LOCALSTORAGE_KEYS.incomeRecords),
-    // Purchases and car expenses didn't exist in MoneyMap's old
-    // localStorage-only days — nothing to recover, they simply start empty.
-    purchases: [],
-    carExpenses: [],
-    currency: loadValue<CurrencyCode>('currency', 'usd'),
-  };
-}
-
-function isEmptyBackup(data: FinanceBackupData): boolean {
-  return (
-    data.transactions.length === 0 &&
-    data.categories.length === 0 &&
-    data.paymentMethods.length === 0 &&
-    data.savingsGoals.length === 0 &&
-    data.investments.length === 0 &&
-    data.subscriptions.length === 0 &&
-    data.incomeRecords.length === 0
-  );
-}
-
 const LAST_KNOWN_STATE_KEY = 'lastKnownServerState';
+/** Namespaced per profile so switching profiles on one device can't show
+ *  another profile's cached data while offline. */
+function lastKnownStateKey(profileId: string): string {
+  return `${LAST_KNOWN_STATE_KEY}.${profileId}`;
+}
 type SetState = (partial: Partial<FinanceState>) => void;
 
 /** Pushes the full current state to the server after a local mutation —
@@ -183,8 +176,10 @@ type SetState = (partial: Partial<FinanceState>) => void;
  *  pop a new toast on top of the one still showing. */
 function syncToServer(get: () => FinanceState, set: SetState) {
   const s = get();
+  if (!s.profileId) return;
+  const profileId = s.profileId;
   const wasAlreadyPending = s.pendingSync;
-  pushState({
+  pushState(profileId, {
     transactions: s.transactions,
     categories: s.categories,
     paymentMethods: s.paymentMethods,
@@ -194,10 +189,12 @@ function syncToServer(get: () => FinanceState, set: SetState) {
     incomeRecords: s.incomeRecords,
     purchases: s.purchases,
     carExpenses: s.carExpenses,
+    bankAllocations: s.bankAllocations,
+    bankColumns: s.bankColumns,
     currency: s.currency,
   })
     .then((saved) => {
-      saveValue(LAST_KNOWN_STATE_KEY, saved);
+      saveValue(lastKnownStateKey(profileId), saved);
       set({ pendingSync: false, isOnline: true });
     })
     .catch((err: unknown) => {
@@ -213,6 +210,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   status: 'loading',
   isOnline: true,
   pendingSync: false,
+  profileId: null,
 
   transactions: [],
   categories: [],
@@ -223,26 +221,16 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
   incomeRecords: [],
   purchases: [],
   carExpenses: [],
+  bankAllocations: [],
+  bankColumns: [],
   currency: 'usd',
   filter: EMPTY_FILTER,
 
-  init: async () => {
+  init: async (profileId) => {
+    set({ status: 'loading', profileId });
     try {
-      const server = await fetchState();
-      if (server.updatedAt === null) {
-        // Server has never been written to — this is a fresh container/
-        // volume. If this browser still has data from before the sync
-        // backend existed, adopt it as the starting state instead of
-        // just showing an empty app.
-        const legacy = readLegacyLocalStorage();
-        if (!isEmptyBackup(legacy)) {
-          const saved = await pushState(legacy);
-          saveValue(LAST_KNOWN_STATE_KEY, saved);
-          set({ ...saved, status: 'ready', isOnline: true, pendingSync: false });
-          return;
-        }
-      }
-      saveValue(LAST_KNOWN_STATE_KEY, server);
+      const server = await fetchState(profileId);
+      saveValue(lastKnownStateKey(profileId), server);
       set({ ...server, status: 'ready', isOnline: true, pendingSync: false });
     } catch (err) {
       console.error('Failed to load from server', err);
@@ -250,7 +238,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
       // last saw from the server (saved after every successful load/sync)
       // so the app still opens with your real data instead of an error
       // screen, offline-first rather than offline-broken.
-      const cached = loadValue<ServerState | null>(LAST_KNOWN_STATE_KEY, null);
+      const cached = loadValue<ServerState | null>(lastKnownStateKey(profileId), null);
       if (cached) {
         set({ ...cached, status: 'ready', isOnline: false, pendingSync: false });
       } else {
@@ -264,13 +252,14 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
    *  pushed (pendingSync), in which case pulling would overwrite it with
    *  the server's older copy, so this retries the push instead. */
   refreshFromServer: async () => {
-    if (get().status !== 'ready') return;
+    const profileId = get().profileId;
+    if (get().status !== 'ready' || !profileId) return;
     if (get().pendingSync) {
       syncToServer(get, set);
       return;
     }
     try {
-      const server = await fetchState();
+      const server = await fetchState(profileId);
       set({
         transactions: server.transactions,
         categories: server.categories,
@@ -281,10 +270,12 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
         incomeRecords: server.incomeRecords,
         purchases: server.purchases,
         carExpenses: server.carExpenses,
+        bankAllocations: server.bankAllocations,
+        bankColumns: server.bankColumns,
         currency: server.currency,
         isOnline: true,
       });
-      saveValue(LAST_KNOWN_STATE_KEY, server);
+      saveValue(lastKnownStateKey(profileId), server);
     } catch (err) {
       // A transient network blip shouldn't disrupt an already-working
       // session — just try again on the next poll.
@@ -467,6 +458,47 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     syncToServer(get, set);
   },
 
+  addBankAllocation: (a) => {
+    const record: BankAllocation = { ...a, id: generateLocalId(), createdAt: new Date().toISOString() };
+    set({ bankAllocations: [...get().bankAllocations, record] });
+    syncToServer(get, set);
+    return record.id;
+  },
+  updateBankAllocation: (a) => {
+    set({ bankAllocations: get().bankAllocations.map((x) => (x.id === a.id ? a : x)) });
+    syncToServer(get, set);
+  },
+  deleteBankAllocation: (id) => {
+    set({ bankAllocations: get().bankAllocations.filter((x) => x.id !== id) });
+    syncToServer(get, set);
+  },
+  restoreBankAllocation: (a, index) => {
+    const next = [...get().bankAllocations];
+    next.splice(Math.min(index, next.length), 0, a);
+    set({ bankAllocations: next });
+    syncToServer(get, set);
+  },
+
+  addBankColumn: (c) => {
+    const record: BankColumn = { ...c, id: generateLocalId(), createdAt: new Date().toISOString() };
+    set({ bankColumns: [...get().bankColumns, record] });
+    syncToServer(get, set);
+  },
+  updateBankColumn: (c) => {
+    set({ bankColumns: get().bankColumns.map((x) => (x.id === c.id ? c : x)) });
+    syncToServer(get, set);
+  },
+  deleteBankColumn: (id) => {
+    set({ bankColumns: get().bankColumns.filter((x) => x.id !== id) });
+    syncToServer(get, set);
+  },
+  restoreBankColumn: (c, index) => {
+    const next = [...get().bankColumns];
+    next.splice(Math.min(index, next.length), 0, c);
+    set({ bankColumns: next });
+    syncToServer(get, set);
+  },
+
   setCurrency: (c) => {
     set({ currency: c });
     syncToServer(get, set);
@@ -485,8 +517,40 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     if (data.incomeRecords) updates.incomeRecords = data.incomeRecords;
     if (data.purchases) updates.purchases = data.purchases;
     if (data.carExpenses) updates.carExpenses = data.carExpenses;
+    if (data.bankAllocations) updates.bankAllocations = data.bankAllocations;
+    if (data.bankColumns) updates.bankColumns = data.bankColumns;
     if (data.currency) updates.currency = data.currency;
     set(updates);
     syncToServer(get, set);
+  },
+
+  reset: () => {
+    try {
+      const prefix = `moneymap.finance.${LAST_KNOWN_STATE_KEY}.`;
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith(prefix)) localStorage.removeItem(key);
+      }
+    } catch {
+      // ignore
+    }
+    set({
+      status: 'loading',
+      isOnline: true,
+      pendingSync: false,
+      profileId: null,
+      transactions: [],
+      categories: [],
+      paymentMethods: [],
+      savingsGoals: [],
+      investments: [],
+      subscriptions: [],
+      incomeRecords: [],
+      purchases: [],
+      carExpenses: [],
+      bankAllocations: [],
+      bankColumns: [],
+      currency: 'usd',
+      filter: EMPTY_FILTER,
+    });
   },
 }));

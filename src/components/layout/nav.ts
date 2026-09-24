@@ -7,6 +7,7 @@ import {
   CalendarClock,
   Landmark,
   ShoppingBag,
+  Building2,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -25,4 +26,5 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/subscriptions', label: 'Subscriptions & bills', icon: CalendarClock },
   { to: '/purchases', label: 'Purchases & expenses', icon: ShoppingBag },
   { to: '/income', label: 'Income & tax', icon: Landmark },
+  { to: '/banks', label: 'Banks', icon: Building2 },
 ];

@@ -7,10 +7,11 @@
 // cached opportunistically the first time they're actually fetched
 // (stale-while-revalidate).
 //
-// What this does NOT do: cache or replay API writes. PUT /api/state is left
-// alone entirely — useFinanceStore already handles retrying a failed sync
-// once back online, which needs the current full app state, something a
-// service worker has no access to.
+// What this does NOT do: cache or replay data requests. Those go to
+// Supabase (a different origin, so the fetch handler ignores them) —
+// useFinanceStore already handles retrying a failed sync once back online,
+// which needs the current full app state, something a service worker has
+// no access to.
 //
 // Bump VERSION whenever this file's caching behavior changes materially —
 // it names the caches, so a bump makes `activate` clean out the old ones.
@@ -50,8 +51,7 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return; // never intercept writes
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith('/api/')) return; // the app owns its own online/offline handling for this
+  if (url.origin !== self.location.origin) return; // includes every Supabase call
 
   // Page navigations (opening a route directly, including offline): try the
   // network for a fresh shell, fall back to the cached one so the app still

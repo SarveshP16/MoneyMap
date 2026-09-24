@@ -7,6 +7,7 @@
 
 import { formatCurrency } from '../../lib/currency';
 import { formatIsoDate } from '../../lib/dates';
+import { saveFile } from '../../lib/saveFile';
 import { financialYearLabel } from '../../lib/financeTotals';
 import { incomeTypeLabel, type CurrencyInfo, type IncomeRecord } from '../../lib/types';
 
@@ -168,5 +169,5 @@ export async function exportIncomePdf(records: IncomeRecord[], currency: Currenc
     },
   });
 
-  doc.save(`moneymap-income-tax-${formatIsoDate(new Date())}.pdf`);
+  return saveFile(`moneymap-income-tax-${formatIsoDate(new Date())}.pdf`, doc.output('blob'));
 }

@@ -195,3 +195,34 @@ export function investmentGainLoss(inv: Investment): number | null {
   if (inv.quantity == null || inv.purchasePrice == null) return null;
   return inv.currentValue - inv.quantity * inv.purchasePrice;
 }
+
+export type BankColumnKind = 'text' | 'number';
+
+export const BANK_COLUMN_KINDS: BankColumnKind[] = ['text', 'number'];
+
+export const bankColumnKindLabel: Record<BankColumnKind, string> = {
+  text: 'Text',
+  number: 'Number',
+};
+
+/** A user-added column on the Banks table, beyond the built-in
+ *  Pay money / Bank account / Notes. */
+export interface BankColumn {
+  id: string;
+  name: string;
+  kind: BankColumnKind;
+  createdAt: string;
+}
+
+/** One row of the pay split — how much of each pay moves to which bank
+ *  account. `extras` holds the user-added columns' values keyed by column
+ *  id, always as the raw text typed (number columns are parsed only when
+ *  summed), so a half-typed "12." never gets mangled by a round-trip. */
+export interface BankAllocation {
+  id: string;
+  amount: number;
+  bankAccount: string;
+  note?: string;
+  extras?: Record<string, string>;
+  createdAt: string;
+}
