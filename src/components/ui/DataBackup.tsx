@@ -7,8 +7,8 @@ import { useToastStore } from '../../store/useToastStore';
 import { Button } from './Button';
 import { Modal } from './Modal';
 
-/** Export/import the whole app as one JSON file — the only safety net
- *  while data lives in localStorage. Lives in the sidebar footer next to
+/** Export/import the whole app as one JSON file — a copy you hold
+ *  yourself, independent of the cloud backend. Lives in the sidebar footer next to
  *  the currency picker, on both desktop and mobile nav. */
 export function DataBackup() {
   const transactions = useFinanceStore((s) => s.transactions);
@@ -20,6 +20,8 @@ export function DataBackup() {
   const incomeRecords = useFinanceStore((s) => s.incomeRecords);
   const purchases = useFinanceStore((s) => s.purchases);
   const carExpenses = useFinanceStore((s) => s.carExpenses);
+  const bankAllocations = useFinanceStore((s) => s.bankAllocations);
+  const bankColumns = useFinanceStore((s) => s.bankColumns);
   const currency = useFinanceStore((s) => s.currency);
   const restoreAll = useFinanceStore((s) => s.restoreAll);
 
@@ -27,7 +29,7 @@ export function DataBackup() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<Partial<FinanceBackupData> | null>(null);
 
-  function exportData() {
+  async function exportData() {
     const data: FinanceBackupData = {
       transactions,
       categories,
@@ -38,10 +40,17 @@ export function DataBackup() {
       incomeRecords,
       purchases,
       carExpenses,
+      bankAllocations,
+      bankColumns,
       currency,
     };
-    downloadBackup(data);
-    showToast('Backup downloaded');
+    try {
+      await downloadBackup(data);
+      showToast('Backup exported');
+    } catch (err) {
+      console.error('Backup export failed', err);
+      showToast('Could not export the backup.');
+    }
   }
 
   async function handleFileChosen(e: React.ChangeEvent<HTMLInputElement>) {

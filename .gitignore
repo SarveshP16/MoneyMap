@@ -11,3 +11,9 @@ dev-server.log
 
 # OS
 .DS_Store
+
+# Android release signing — never commit these; losing them means you can
+# never ship an update to the installed app, so back them up privately.
+*.jks
+*.keystore
+android/keystore.properties

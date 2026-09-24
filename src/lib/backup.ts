@@ -1,11 +1,12 @@
-// Whole-data backup/restore — MoneyMap's only real safety net while
-// everything lives in localStorage. Mirrors Pulse's Settings "Export data"
-// / "Import data" (data_backup_service.dart), adapted to a browser
-// download/file-picker instead of the filesystem.
+// Whole-data backup/restore — a portable copy independent of the cloud
+// backend. Mirrors Pulse's Settings "Export data" / "Import data"
+// (data_backup_service.dart), adapted to a browser download (or the
+// Android share sheet) and file-picker instead of the filesystem.
 
-import { CURRENCIES, type CarExpense, type Category, type CurrencyCode, type IncomeRecord, type Investment, type PaymentMethod, type Purchase, type SavingsGoal, type Subscription, type Transaction } from './types';
+import { CURRENCIES, type BankAllocation, type BankColumn, type CarExpense, type Category, type CurrencyCode, type IncomeRecord, type Investment, type PaymentMethod, type Purchase, type SavingsGoal, type Subscription, type Transaction } from './types';
 import type { FinanceBackupData } from '../store/useFinanceStore';
 import { formatIsoDate } from './dates';
+import { saveFile } from './saveFile';
 
 const BACKUP_VERSION = 1;
 
@@ -15,21 +16,10 @@ interface BackupFile extends FinanceBackupData {
   exportedAt: string;
 }
 
-export function downloadBackup(data: FinanceBackupData): void {
+export function downloadBackup(data: FinanceBackupData): Promise<void> {
   const file: BackupFile = { app: 'moneymap', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), ...data };
   const blob = new Blob([JSON.stringify(file, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `moneymap-backup-${formatIsoDate(new Date())}.json`;
-  // Must be in the DOM for .click() to reliably trigger a download in every
-  // browser, and the object URL must outlive the click — revoking it
-  // synchronously races the browser actually reading the blob and can
-  // silently drop the download.
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return saveFile(`moneymap-backup-${formatIsoDate(new Date())}.json`, blob);
 }
 
 /** Loose structural validation — enough to catch "wrong file" without
@@ -61,6 +51,8 @@ export function parseBackup(raw: string): Partial<FinanceBackupData> {
   if (Array.isArray(obj.incomeRecords)) result.incomeRecords = obj.incomeRecords as IncomeRecord[];
   if (Array.isArray(obj.purchases)) result.purchases = obj.purchases as Purchase[];
   if (Array.isArray(obj.carExpenses)) result.carExpenses = obj.carExpenses as CarExpense[];
+  if (Array.isArray(obj.bankAllocations)) result.bankAllocations = obj.bankAllocations as BankAllocation[];
+  if (Array.isArray(obj.bankColumns)) result.bankColumns = obj.bankColumns as BankColumn[];
   if (typeof obj.currency === 'string' && obj.currency in CURRENCIES) result.currency = obj.currency as CurrencyCode;
 
   const hasAnyCollection = [
@@ -73,6 +65,8 @@ export function parseBackup(raw: string): Partial<FinanceBackupData> {
     result.incomeRecords,
     result.purchases,
     result.carExpenses,
+    result.bankAllocations,
+    result.bankColumns,
   ].some((c) => c != null);
   if (!hasAnyCollection && result.currency == null) {
     throw new Error('That backup file is empty.');
@@ -102,6 +96,7 @@ export function backupItemCount(data: Partial<FinanceBackupData>): number {
     (data.subscriptions?.length ?? 0) +
     (data.incomeRecords?.length ?? 0) +
     (data.purchases?.length ?? 0) +
-    (data.carExpenses?.length ?? 0)
+    (data.carExpenses?.length ?? 0) +
+    (data.bankAllocations?.length ?? 0)
   );
 }
