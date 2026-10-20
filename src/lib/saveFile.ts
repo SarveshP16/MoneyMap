@@ -2,7 +2,8 @@
 // browser that's an <a download> click; inside the Android app's WebView
 // downloads go nowhere, so the file is written to the app's cache and
 // opened in the system share sheet instead — save to Drive/Files, email
-// it, whatever the phone offers.
+// it, whatever the phone offers. The Windows app takes the browser path:
+// Electron answers an <a download> with a native "Save as" dialog.
 
 import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';

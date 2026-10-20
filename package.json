@@ -1,8 +1,11 @@
 {
   "name": "moneymap",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Personal finance tracker",
+  "author": "Sarvesh Pandit",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -11,7 +14,30 @@
     "android:sync": "npm run build && npx cap sync android",
     "android:open": "npx cap open android",
     "android:apk": "npm run android:sync && android\\gradlew.bat -p android assembleDebug",
-    "android:release": "npm run android:sync && android\\gradlew.bat -p android assembleRelease"
+    "android:release": "npm run android:sync && android\\gradlew.bat -p android assembleRelease",
+    "desktop": "npm run build && electron .",
+    "desktop:build": "npm run build && electron-builder --win"
+  },
+  "build": {
+    "appId": "com.moneymap.app",
+    "productName": "MoneyMap",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "!node_modules/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icons/icon-512.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "MoneyMap"
+    }
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
@@ -37,6 +63,8 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
     "oxlint": "^1.81.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",

@@ -1,10 +1,13 @@
-// OS notifications on both platforms. The web goes through the service
+// OS notifications on every platform. The web goes through the service
 // worker (so they show even when MoneyMap isn't the focused tab); the
 // Android app has no service worker and no Notification API inside its
-// WebView, so it uses Capacitor's LocalNotifications plugin instead.
+// WebView, so it uses Capacitor's LocalNotifications plugin instead. The
+// Windows app has no service worker either, but Electron turns a plain
+// `new Notification()` into a Windows toast.
 
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
+import { isDesktopApp } from './platform';
 
 const isNative = Capacitor.isNativePlatform();
 
@@ -37,6 +40,10 @@ export async function showNotification(title: string, body: string, tag: string)
   try {
     if (isNative) {
       await LocalNotifications.schedule({ notifications: [{ id: tagToId(tag), title, body }] });
+      return;
+    }
+    if (isDesktopApp) {
+      new Notification(title, { body, tag });
       return;
     }
     if (!('serviceWorker' in navigator)) return;

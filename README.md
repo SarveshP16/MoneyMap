@@ -6,7 +6,7 @@
 
 **Where your money goes, charted.**
 
-A personal finance tracker for the web and Android: one codebase, synced
+A personal finance tracker for Windows, Android and the web: one codebase, synced
 through the cloud, usable offline, with private and shared ledgers for couples.
 
 ![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)
@@ -14,8 +14,9 @@ through the cloud, usable offline, with private and shared ledgers for couples.
 ![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06b6d4?logo=tailwindcss&logoColor=white)
 ![Capacitor](https://img.shields.io/badge/Capacitor-8-119eff?logo=capacitor&logoColor=white)
+![Electron](https://img.shields.io/badge/Electron-47848f?logo=electron&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20Auth-3ecf8e?logo=supabase&logoColor=white)
-![Platforms](https://img.shields.io/badge/platforms-Web%20%7C%20Android-4fa08f)
+![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20Android%20%7C%20Web-4fa08f)
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
 </div>
@@ -70,18 +71,19 @@ through the cloud, usable offline, with private and shared ledgers for couples.
 
 ```
 ┌──────────────────────┐        ┌──────────────────────────────┐
-│  Web (static host)   │        │  Supabase                    │
+│  Windows (Electron)  │        │  Supabase                    │
 │  Android (Capacitor) │ ─────▶ │  • Auth (email + password)   │
-│  same React build    │ ◀───── │  • Postgres + row-level sec. │
-└──────────────────────┘  HTTPS └──────────────────────────────┘
+│  Web (static host)   │ ◀───── │  • Postgres + row-level sec. │
+│  same React build    │  HTTPS │                              │
+└──────────────────────┘        └──────────────────────────────┘
    local cache for offline
 ```
 
-- **One codebase.** The React app is built once by Vite. The web version is those static files; the Android app is the same files wrapped by [Capacitor](https://capacitorjs.com).
+- **One codebase.** The React app is built once by Vite. The web version is those static files; the Android app is the same files wrapped by [Capacitor](https://capacitorjs.com), and the Windows app is the same files in an [Electron](https://www.electronjs.org) window. All three sign in to the same Supabase project, so they share accounts and data.
 - **No server of your own.** [Supabase](https://supabase.com) provides login and the database. The whole backend is one SQL file, [`supabase/schema.sql`](supabase/schema.sql).
 - **Ledgers.** Each ledger is one JSON document. Row-level security means only a ledger's members can read it, and every write goes through a `save_ledger_state` function that merges changes instead of overwriting blindly.
 - **Sync.** Changes are saved optimistically and pushed right away. Other devices pick them up within about 15 seconds, or immediately when the app regains focus.
-- **Native where it matters.** On Android, notifications use `@capacitor/local-notifications`, and exports (backup JSON, tax PDF) open the system share sheet.
+- **Native where it matters.** On Android, notifications use `@capacitor/local-notifications`, and exports (backup JSON, tax PDF) open the system share sheet. On Windows, notifications are Windows toasts and exports open a "Save as" dialog.
 
 ## Getting started
 
@@ -90,6 +92,7 @@ through the cloud, usable offline, with private and shared ledgers for couples.
 - Node.js 20+
 - A free [Supabase](https://supabase.com) project
 - For Android: Android Studio, or the Android SDK plus JDK 21
+- For Windows: nothing extra; Electron is installed by `npm install`
 
 ### 1. Set up Supabase
 
@@ -128,6 +131,15 @@ npm run build      # type-checks, then outputs static files to dist/
 ```
 
 Deploy `dist/` to any static host: Netlify, Cloudflare Pages, Vercel, GitHub Pages, etc. [`public/_redirects`](public/_redirects) gives Netlify and Cloudflare Pages the SPA fallback, so refreshing on `/transactions` works.
+
+### Windows
+
+| Command | What it does |
+| --- | --- |
+| `npm run desktop` | Build the web app and open it in an Electron window |
+| `npm run desktop:build` | Installer → `release/MoneyMap Setup <version>.exe` |
+
+The installer isn't code-signed, so Windows SmartScreen shows "Windows protected your PC" on first run; choose **More info → Run anyway**. Bump `version` in `package.json` before building an update; installing the new setup over the old one keeps your data.
 
 ### Android
 
@@ -179,13 +191,14 @@ src/
 supabase/
   schema.sql       The entire backend: tables, row-level security, RPC functions
 android/           Capacitor Android project
+electron/          Windows app: the Electron main process
 scripts/           Icon generator
 public/            PWA manifest, service worker, icons
 ```
 
 ## Tech stack
 
-React 19 · TypeScript · Vite · Tailwind CSS v4 · Zustand · Framer Motion · Recharts · lucide-react · jsPDF · Supabase · Capacitor 8
+React 19 · TypeScript · Vite · Tailwind CSS v4 · Zustand · Framer Motion · Recharts · lucide-react · jsPDF · Supabase · Capacitor 8 · Electron
 
 ## Design
 

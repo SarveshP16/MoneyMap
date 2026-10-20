@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { isDesktopApp } from '../lib/platform';
 import { useToastStore } from './useToastStore';
 
 /** Registers public/sw.js, which is what makes MoneyMap installable and lets
@@ -10,9 +11,9 @@ import { useToastStore } from './useToastStore';
  *  to reload instead of doing it for them. */
 export function useServiceWorker() {
   useEffect(() => {
-    // The Android app already ships its files inside the APK — a service
-    // worker there would only add a second, staler cache layer.
-    if (Capacitor.isNativePlatform() || !('serviceWorker' in navigator)) return;
+    // The Android and Windows apps already ship their files locally — a
+    // service worker there would only add a second, staler cache layer.
+    if (Capacitor.isNativePlatform() || isDesktopApp || !('serviceWorker' in navigator)) return;
 
     // controllerchange fires both for a genuine update AND the very first
     // time this page gets claimed by a freshly-installed worker (there's no
