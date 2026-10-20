@@ -37,7 +37,7 @@ through the cloud, usable offline, with private and shared ledgers for couples.
 - **Income & tax**: gross/net/tax/super per payment, financial-year totals, and a **PDF export** for tax time.
 - **Banks**: a spreadsheet-style pay-split table with your own custom columns.
 - **Notifications**: optional alerts when a bill is due soon or a category nears its budget.
-- **Private + shared ledgers**: every account gets a Personal ledger; share a separate ledger with your partner.
+- **Private + shared ledgers**: every account gets a Personal ledger; invite your partner to a separate shared one, which they join once they accept — and either of you can leave it later.
 - **Offline-first**: opens with your last-synced data and pushes changes when you're back online.
 - **Backups**: export and import everything as a single JSON file.
 - **Light & dark themes**, and 10 currencies.
@@ -81,7 +81,7 @@ through the cloud, usable offline, with private and shared ledgers for couples.
 
 - **One codebase.** The React app is built once by Vite. The web version is those static files; the Android app is the same files wrapped by [Capacitor](https://capacitorjs.com), and the Windows app is the same files in an [Electron](https://www.electronjs.org) window. All three sign in to the same Supabase project, so they share accounts and data.
 - **No server of your own.** [Supabase](https://supabase.com) provides login and the database. The whole backend is one SQL file, [`supabase/schema.sql`](supabase/schema.sql).
-- **Ledgers.** Each ledger is one JSON document. Row-level security means only a ledger's members can read it, and every write goes through a `save_ledger_state` function that merges changes instead of overwriting blindly.
+- **Ledgers.** Each ledger is one JSON document. Row-level security means only a ledger's accepted members can read it, and every write goes through a `save_ledger_state` function that merges changes instead of overwriting blindly. Sharing is an invitation: being invited grants nothing until you accept, so nobody can push a ledger into your account.
 - **Sync.** Changes are saved optimistically and pushed right away. Other devices pick them up within about 15 seconds, or immediately when the app regains focus.
 - **Native where it matters.** On Android, notifications use `@capacitor/local-notifications`, and exports (backup JSON, tax PDF) open the system share sheet. On Windows, notifications are Windows toasts and exports open a "Save as" dialog.
 

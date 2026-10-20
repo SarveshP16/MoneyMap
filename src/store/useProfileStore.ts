@@ -1,5 +1,14 @@
 import { create } from 'zustand';
-import { createSharedProfile, fetchProfiles, type Profile } from '../lib/api';
+import {
+  acceptInvitation,
+  createSharedProfile,
+  declineInvitation,
+  fetchInvitations,
+  fetchProfiles,
+  leaveProfile,
+  type Invitation,
+  type Profile,
+} from '../lib/api';
 import { loadValue, saveValue } from '../lib/storage';
 
 // Deliberately outside the `moneymap.finance.` prefix used by lib/storage.ts
@@ -29,15 +38,28 @@ function persistSelection(id: string | null) {
 interface ProfileState {
   status: 'loading' | 'ready' | 'error';
   profiles: Profile[];
+  /** Shared ledgers this user has been invited to but hasn't answered. Kept
+   *  apart from `profiles` because they aren't selectable: there's no
+   *  membership behind them until they're accepted. */
+  invitations: Invitation[];
   selectedProfileId: string | null;
 
   /** Lists the signed-in user's ledgers and settles on one — the persisted
    *  pick if it's still one of theirs, otherwise their Personal ledger. */
   loadProfiles: () => Promise<void>;
   selectProfile: (id: string) => void;
-  /** Creates a Shared ledger with a partner and switches to it. Throws with
-   *  a human-readable message (e.g. partner hasn't signed up yet). */
+  /** Creates a Shared ledger, invites a partner to it, and switches to it.
+   *  The partner sees it only once they accept, so it starts out as just
+   *  the caller's own empty ledger. */
   createShared: (name: string, partnerEmail: string) => Promise<void>;
+  /** Joins an invited ledger. Doesn't switch into it — accepting is an
+   *  answer to "may they share with you", not a request to go there now,
+   *  and swapping the visible data out mid-session would be a surprise. */
+  acceptInvite: (ledgerId: string) => Promise<void>;
+  declineInvite: (ledgerId: string) => Promise<void>;
+  /** Leaves a Shared ledger, falling back to the Personal one if it was the
+   *  one on screen. */
+  leaveShared: (ledgerId: string) => Promise<void>;
   /** Forgets everything user-specific — on sign-out, so the next account
    *  on this device can't land in the previous one's ledger. */
   reset: () => void;
@@ -46,13 +68,17 @@ interface ProfileState {
 export const useProfileStore = create<ProfileState>((set, get) => ({
   status: 'loading',
   profiles: [],
+  invitations: [],
   selectedProfileId: loadSelectedProfileId(),
 
   loadProfiles: async () => {
     set({ status: 'loading' });
     let profiles: Profile[];
+    // Never cached: an invitation is something to act on, and a stale one
+    // offered offline would only fail the moment it was answered.
+    let invitations: Invitation[] = [];
     try {
-      profiles = await fetchProfiles();
+      [profiles, invitations] = await Promise.all([fetchProfiles(), fetchInvitations()]);
       saveValue(CACHED_PROFILES_KEY, profiles);
     } catch (err) {
       console.error('Failed to load profiles', err);
@@ -64,10 +90,12 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       profiles = cached;
     }
 
+    // Only ever settles on something from `profiles`, so a pending
+    // invitation can't become the open ledger on its own.
     const selected = get().selectedProfileId;
     const next = selected != null && profiles.some((p) => p.id === selected) ? selected : (profiles[0]?.id ?? null);
     persistSelection(next);
-    set({ profiles, status: 'ready', selectedProfileId: next });
+    set({ profiles, invitations, status: 'ready', selectedProfileId: next });
   },
 
   selectProfile: (id) => {
@@ -81,9 +109,31 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     get().selectProfile(id);
   },
 
+  acceptInvite: async (ledgerId) => {
+    await acceptInvitation(ledgerId);
+    await get().loadProfiles();
+  },
+
+  declineInvite: async (ledgerId) => {
+    await declineInvitation(ledgerId);
+    await get().loadProfiles();
+  },
+
+  leaveShared: async (ledgerId) => {
+    await leaveProfile(ledgerId);
+    // Drop the selection first if it was the ledger being left, so
+    // loadProfiles settles on the Personal one instead of trying to keep a
+    // pick that no longer resolves.
+    if (get().selectedProfileId === ledgerId) {
+      persistSelection(null);
+      set({ selectedProfileId: null });
+    }
+    await get().loadProfiles();
+  },
+
   reset: () => {
     persistSelection(null);
     saveValue(CACHED_PROFILES_KEY, []);
-    set({ status: 'loading', profiles: [], selectedProfileId: null });
+    set({ status: 'loading', profiles: [], invitations: [], selectedProfileId: null });
   },
 }));

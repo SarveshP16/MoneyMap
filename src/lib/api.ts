@@ -12,6 +12,15 @@ export interface Profile {
   kind: 'personal' | 'shared';
 }
 
+/** A Shared ledger someone has invited this user to and they haven't
+ *  answered yet. Not a Profile: until it's accepted there's no membership,
+ *  so none of its data is readable and it can't be switched into. */
+export interface Invitation {
+  ledgerId: string;
+  name: string;
+  invitedBy: string | null;
+}
+
 export interface ServerState extends FinanceBackupData {
   updatedAt: string | null;
 }
@@ -44,10 +53,43 @@ export async function fetchProfiles(): Promise<Profile[]> {
     .sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'personal' ? -1 : 1));
 }
 
+/** Creates a Shared ledger and invites a partner to it. Succeeds whether or
+ *  not that address has a MoneyMap account — the backend won't say, since
+ *  that would make this a way to probe who's signed up — so the caller can't
+ *  report "sent" or "no such user" either. */
 export async function createSharedProfile(name: string, partnerEmail: string): Promise<string> {
   const { data, error } = await supabase.rpc('create_shared_ledger', { p_name: name, p_partner_email: partnerEmail });
   if (error) throw error;
   return data as string;
+}
+
+/** Pending invitations waiting on this user. Comes from an RPC rather than a
+ *  table select because the invited ledgers aren't readable until accepted. */
+export async function fetchInvitations(): Promise<Invitation[]> {
+  const { data, error } = await supabase.rpc('list_ledger_invitations');
+  if (error) throw error;
+  return (data as { ledger_id: string; name: string; invited_by: string | null }[]).map((row) => ({
+    ledgerId: row.ledger_id,
+    name: row.name,
+    invitedBy: row.invited_by,
+  }));
+}
+
+export async function acceptInvitation(ledgerId: string): Promise<void> {
+  const { error } = await supabase.rpc('accept_ledger_invitation', { p_ledger_id: ledgerId });
+  if (error) throw error;
+}
+
+export async function declineInvitation(ledgerId: string): Promise<void> {
+  const { error } = await supabase.rpc('decline_ledger_invitation', { p_ledger_id: ledgerId });
+  if (error) throw error;
+}
+
+/** Removes this user from a Shared ledger. If they were the last member the
+ *  ledger and its data go with them — nobody could have read it again. */
+export async function leaveProfile(ledgerId: string): Promise<void> {
+  const { error } = await supabase.rpc('leave_ledger', { p_ledger_id: ledgerId });
+  if (error) throw error;
 }
 
 export async function fetchState(profileId: string): Promise<ServerState> {
