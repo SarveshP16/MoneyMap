@@ -9,7 +9,7 @@
 A personal finance tracker for Windows, Android and the web: one codebase, synced
 through the cloud, usable offline, with private and shared ledgers for couples.
 
-**Website: [sarveshp16.github.io/MoneyMap](https://sarveshp16.github.io/MoneyMap/)**
+**[Visit the website](https://sarveshp16.github.io/MoneyMap/)**
 
 ![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?logo=typescript&logoColor=white)
