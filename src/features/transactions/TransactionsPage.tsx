@@ -13,6 +13,7 @@ import { TransactionRow } from './TransactionRow';
 import { TransactionForm } from './TransactionForm';
 import { TransactionFilterPanel } from './TransactionFilterPanel';
 import { ReconciliationBanner } from './ReconciliationBanner';
+import { PaymentReview } from './PaymentReview';
 
 export function TransactionsPage() {
   const transactions = useFinanceStore((s) => s.transactions);
@@ -74,6 +75,7 @@ export function TransactionsPage() {
       />
 
       <div className="px-5 py-6 sm:px-8">
+        <PaymentReview />
         <ReconciliationBanner onViewMoved={() => applyFilter({ ...filter, movedToCreditCard: true })} />
 
         {transactions.length > 0 && (

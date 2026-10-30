@@ -4,6 +4,7 @@ import { NAV_ITEMS } from './nav';
 import { CurrencyPicker } from '../ui/CurrencyPicker';
 import { DataBackup } from '../ui/DataBackup';
 import { NotificationToggle } from '../ui/NotificationToggle';
+import { PaymentCaptureSettings } from '../ui/PaymentCaptureSettings';
 import { ProfileSwitcher } from '../ui/ProfileSwitcher';
 import { SyncStatusIndicator } from '../ui/SyncStatusIndicator';
 import { ThemeToggle } from '../ui/ThemeToggle';
@@ -47,6 +48,7 @@ export function Sidebar() {
         <SyncStatusIndicator />
         <ProfileSwitcher />
         <NotificationToggle />
+        <PaymentCaptureSettings />
         <ThemeToggle />
         <CurrencyPicker />
         <DataBackup />

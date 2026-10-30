@@ -526,9 +526,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   reset: () => {
     try {
-      const prefix = `moneymap.finance.${LAST_KNOWN_STATE_KEY}.`;
+      // The ledger caches, and the per-ledger tap-to-pay review choices
+      // (captureRulesKey), which name the merchants you shop at.
+      const prefixes = [`moneymap.finance.${LAST_KNOWN_STATE_KEY}.`, 'moneymap.finance.captureRules.'];
       for (const key of Object.keys(localStorage)) {
-        if (key.startsWith(prefix)) localStorage.removeItem(key);
+        if (prefixes.some((p) => key.startsWith(p))) localStorage.removeItem(key);
       }
     } catch {
       // ignore

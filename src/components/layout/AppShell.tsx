@@ -6,9 +6,11 @@ import { MobileNav } from './MobileNav';
 import { Logo } from './Logo';
 import { Toaster } from '../Toaster';
 import { SyncStatusIndicator } from '../ui/SyncStatusIndicator';
+import { usePaymentCaptureSync } from '../../store/usePaymentCaptureStore';
 
 export function AppShell() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  usePaymentCaptureSync();
 
   return (
     <div className="flex h-dvh bg-ink text-ink-bright">
