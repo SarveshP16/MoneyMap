@@ -92,6 +92,11 @@ export interface Category {
   name: string;
   budgetAmount?: number;
   period: BudgetPeriod;
+  /** A date (ISO, date-only) one of this budget's periods starts on — e.g.
+   *  a payday. Weekly budgets reset on its weekday, fortnightly every 14
+   *  days from it, monthly on its day of the month. Absent: Monday, the
+   *  original Wednesday-ending fortnight, and the 1st. */
+  periodAnchor?: string;
   createdAt: string;
 }
 

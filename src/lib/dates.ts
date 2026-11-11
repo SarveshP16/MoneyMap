@@ -48,7 +48,14 @@ export function formatIsoDate(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-const fullDateFormat = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+const rangeDayFormat = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+/** "Thu, Nov 12 – Wed, Nov 18" — both ends inclusive. */
+export function formatDayRange(start: Date, end: Date): string {
+  return `${rangeDayFormat.format(start)} – ${rangeDayFormat.format(end)}`;
+}
+
+const fullDateFormat =new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
 /** Relative label for a date: "Today" / "Tomorrow" / "Yesterday", else e.g.
  *  "Mon, Aug 31" (year appended only when it differs from this year).

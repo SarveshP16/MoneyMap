@@ -3,6 +3,8 @@ import { EditHint } from '../../components/ui/EditHint';
 import { Trail } from '../../components/ui/Trail';
 import { currencyOf, formatCurrency } from '../../lib/currency';
 import { budgetPeriodLabel, type Category } from '../../lib/types';
+import { periodRange } from '../../lib/budgetCalculations';
+import { formatDayRange } from '../../lib/dates';
 import { useFinanceStore } from '../../store/useFinanceStore';
 
 export function CategoryCard({
@@ -18,6 +20,7 @@ export function CategoryCard({
   const budget = category.budgetAmount;
   const isOverBudget = budget != null && spent > budget;
   const progress = budget == null || budget <= 0 ? null : spent / budget;
+  const current = periodRange(category, new Date());
 
   return (
     <motion.button
@@ -39,9 +42,12 @@ export function CategoryCard({
         </div>
       </div>
       {budget != null ? (
-        <span className="w-fit rounded-full bg-brass-soft px-2 py-0.5 text-xs font-medium text-brass">
-          {budgetPeriodLabel[category.period]} budget
-        </span>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="w-fit rounded-full bg-brass-soft px-2 py-0.5 text-xs font-medium text-brass">
+            {budgetPeriodLabel[category.period]} budget
+          </span>
+          <span className="text-xs text-ink-faint">{formatDayRange(current.start, current.end)}</span>
+        </div>
       ) : (
         <p className="text-xs text-ink-faint">No budget set</p>
       )}

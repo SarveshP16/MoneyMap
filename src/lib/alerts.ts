@@ -38,7 +38,7 @@ export function budgetWarnings(categories: Category[], transactions: Transaction
       budget: category.budgetAmount,
       ratio,
       severity: ratio >= 1 ? 'over' : 'near',
-      periodKey: periodStart(category.period, today).toISOString(),
+      periodKey: periodStart(category, today).toISOString(),
     });
   }
   return warnings.sort((a, b) => b.ratio - a.ratio);
