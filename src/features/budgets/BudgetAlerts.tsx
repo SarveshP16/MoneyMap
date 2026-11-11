@@ -34,7 +34,9 @@ export function BudgetAlerts() {
           >
             <span className="text-sm font-medium text-ink-bright">{w.category.name}</span>
             <span className={`figure-sans shrink-0 text-xs font-semibold ${w.severity === 'over' ? 'text-coral' : 'text-brass'}`}>
-              {formatCurrency(w.spent, currency)} / {formatCurrency(w.budget, currency)} · {Math.round(w.ratio * 100)}%
+              {w.debt > 0
+                ? `${formatCurrency(w.debt, currency)} in debt`
+                : `${formatCurrency(w.spent, currency)} / ${formatCurrency(w.budget, currency)} · ${Math.round(w.ratio * 100)}%`}
             </span>
           </button>
         ))}

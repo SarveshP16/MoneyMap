@@ -32,7 +32,7 @@ through the cloud, usable offline, with private and shared ledgers for couples.
 - **Overview**: total spend, budget alerts, upcoming bills, what you're owed, and this financial year's income at a glance.
 - **Transactions**: search and filter expenses by category, payment method or date; track split bills and who still owes you.
 - **Tap-to-pay capture** (Android): optionally reads the payment alerts from Google Wallet and your banking app, and queues each tap for a one-tap review with the amount, merchant, card and a remembered category already filled in.
-- **Budgets**: weekly, fortnightly or monthly limits per category, with progress bars that turn red when you go over.
+- **Budgets**: weekly, fortnightly or monthly limits per category, with progress bars that turn red when you go over. Each budget can start on your payday, and can **carry over**: overspending comes off the next period and leftovers are added to it, with any debt shown until it's paid back.
 - **Savings goals**: targets with deposits and withdrawals, grouped by bank account.
 - **Investments**: holdings with purchase price vs. current value and gain/loss.
 - **Subscriptions & bills**: recurring costs normalised to a monthly figure, an "upcoming" list, and one-tap "log payment".

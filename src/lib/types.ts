@@ -97,7 +97,21 @@ export interface Category {
    *  days from it, monthly on its day of the month. Absent: Monday, the
    *  original Wednesday-ending fortnight, and the 1st. */
   periodAnchor?: string;
+  /** Set while carry-over is on (only alongside periodAnchor): the start
+   *  (ISO, date-only) of the first period whose leftover or overspend rolls
+   *  into the next one. */
+  rolloverSince?: string;
+  /** budgetAmount over time while carry-over is on, oldest first, each
+   *  applying from a period start — so changing the amount doesn't rewrite
+   *  what earlier periods carried. */
+  budgetHistory?: BudgetAmountChange[];
   createdAt: string;
+}
+
+export interface BudgetAmountChange {
+  /** ISO date-only: the start of the first period this amount applies to. */
+  from: string;
+  amount: number;
 }
 
 export interface PaymentMethod {

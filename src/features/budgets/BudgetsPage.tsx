@@ -4,7 +4,7 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useFinanceStore } from '../../store/useFinanceStore';
-import { spentInCurrentPeriod } from '../../lib/budgetCalculations';
+import { budgetStatus } from '../../lib/budgetCalculations';
 import type { Category } from '../../lib/types';
 import { CategoryCard } from './CategoryCard';
 import { CategoryForm } from './CategoryForm';
@@ -56,7 +56,7 @@ export function BudgetsPage() {
             <CategoryCard
               key={c.id}
               category={c}
-              spent={spentInCurrentPeriod(transactions, c, today)}
+              status={budgetStatus(c, transactions, today)}
               onClick={() => {
                 setEditing(c);
                 setFormOpen(true);

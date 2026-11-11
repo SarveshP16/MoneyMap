@@ -3,23 +3,24 @@ import { EditHint } from '../../components/ui/EditHint';
 import { Trail } from '../../components/ui/Trail';
 import { currencyOf, formatCurrency } from '../../lib/currency';
 import { budgetPeriodLabel, type Category } from '../../lib/types';
-import { periodRange } from '../../lib/budgetCalculations';
+import { periodRange, type BudgetStatus } from '../../lib/budgetCalculations';
 import { formatDayRange } from '../../lib/dates';
 import { useFinanceStore } from '../../store/useFinanceStore';
 
 export function CategoryCard({
   category,
-  spent,
+  status,
   onClick,
 }: {
   category: Category;
-  spent: number;
+  status: BudgetStatus;
   onClick: () => void;
 }) {
   const currency = useFinanceStore((s) => currencyOf(s.currency));
-  const budget = category.budgetAmount;
-  const isOverBudget = budget != null && spent > budget;
-  const progress = budget == null || budget <= 0 ? null : spent / budget;
+  const { spent, base, budget, carriedIn, debt } = status;
+  const isOverBudget = budget != null && (spent > budget || debt > 0);
+  // In debt the budget is 0, so there's no ratio to show — the bar sits full in coral.
+  const progress = budget == null ? null : budget > 0 ? spent / budget : debt > 0 ? 1 : null;
   const current = periodRange(category, new Date());
 
   return (
@@ -50,6 +51,19 @@ export function CategoryCard({
         </div>
       ) : (
         <p className="text-xs text-ink-faint">No budget set</p>
+      )}
+      {debt > 0 ? (
+        <p className="figure-sans text-xs font-medium text-coral">
+          {formatCurrency(debt, currency)} in debt, carried to the next period
+        </p>
+      ) : (
+        carriedIn !== 0 &&
+        base != null && (
+          <p className="figure-sans text-xs text-ink-muted">
+            {formatCurrency(base, currency)} {carriedIn > 0 ? '+' : '−'} {formatCurrency(Math.abs(carriedIn), currency)}{' '}
+            from last period
+          </p>
+        )
       )}
       {progress != null && <Trail progress={progress} tone={isOverBudget ? 'coral' : 'verdigris'} />}
     </motion.button>

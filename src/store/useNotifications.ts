@@ -52,7 +52,9 @@ export function useNotifications() {
         if (alreadyNotified[key]) continue;
         showNotification(
           w.severity === 'over' ? 'Over budget' : 'Nearing budget',
-          `${w.category.name}: ${formatCurrency(w.spent, currency)} of ${formatCurrency(w.budget, currency)}`,
+          w.debt > 0
+            ? `${w.category.name}: ${formatCurrency(w.debt, currency)} in debt from earlier periods`
+            : `${w.category.name}: ${formatCurrency(w.spent, currency)} of ${formatCurrency(w.budget, currency)}`,
           key,
         );
         alreadyNotified[key] = true;

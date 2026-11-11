@@ -4,7 +4,7 @@
 // own over-budget highlight always agree on what's spent.
 
 import type { Category, Subscription, Transaction } from './types';
-import { periodStart, spentInCurrentPeriod } from './budgetCalculations';
+import { budgetStatus, periodStart } from './budgetCalculations';
 import { dateOnly } from './dates';
 
 const NEAR_BUDGET_RATIO = 0.8;
@@ -12,7 +12,10 @@ const NEAR_BUDGET_RATIO = 0.8;
 export interface BudgetWarning {
   category: Category;
   spent: number;
+  /** After carry-over (BudgetStatus.budget). */
   budget: number;
+  /** Owed from carry-over (BudgetStatus.debt); 0 when not in debt. */
+  debt: number;
   ratio: number;
   severity: 'over' | 'near';
   /** ISO date the current period started — a stable key for "have I
@@ -28,14 +31,16 @@ export interface BudgetWarning {
 export function budgetWarnings(categories: Category[], transactions: Transaction[], today: Date): BudgetWarning[] {
   const warnings: BudgetWarning[] = [];
   for (const category of categories) {
-    if (category.budgetAmount == null || category.budgetAmount <= 0) continue;
-    const spent = spentInCurrentPeriod(transactions, category, today);
-    const ratio = spent / category.budgetAmount;
+    const { spent, budget, debt } = budgetStatus(category, transactions, today);
+    if (budget == null || (budget <= 0 && debt === 0)) continue;
+    // In debt from carry-over, the budget is 0 — always "over", sorted first.
+    const ratio = debt > 0 ? Infinity : spent / budget;
     if (ratio < NEAR_BUDGET_RATIO) continue;
     warnings.push({
       category,
       spent,
-      budget: category.budgetAmount,
+      budget,
+      debt,
       ratio,
       severity: ratio >= 1 ? 'over' : 'near',
       periodKey: periodStart(category, today).toISOString(),

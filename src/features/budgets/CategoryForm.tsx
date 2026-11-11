@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { AmountInput, DateInput, Field, Segmented, TextInput } from '../../components/ui/fields';
+import { AmountInput, DateInput, Field, Segmented, TextInput, Toggle } from '../../components/ui/fields';
 import { Button } from '../../components/ui/Button';
 import { FormDrawer } from '../../components/ui/FormDrawer';
 import { BUDGET_PERIODS, budgetPeriodLabel, type BudgetPeriod, type Category } from '../../lib/types';
-import { periodRange } from '../../lib/budgetCalculations';
+import { nextRolloverFields, periodRange } from '../../lib/budgetCalculations';
 import { formatDayRange, parseIsoDateLocal } from '../../lib/dates';
 import { currencyOf } from '../../lib/currency';
 import { useFinanceStore } from '../../store/useFinanceStore';
@@ -59,6 +59,7 @@ export function CategoryForm({
   const [amount, setAmount] = useState(category?.budgetAmount?.toString() ?? '');
   const [period, setPeriod] = useState<BudgetPeriod>(category?.period ?? 'monthly');
   const [anchor, setAnchor] = useState(category?.periodAnchor ?? '');
+  const [rollover, setRollover] = useState(category?.rolloverSince != null);
 
   useEffect(() => {
     if (!open) return;
@@ -66,19 +67,28 @@ export function CategoryForm({
     setAmount(category?.budgetAmount?.toString() ?? '');
     setPeriod(category?.period ?? 'monthly');
     setAnchor(category?.periodAnchor ?? '');
+    setRollover(category?.rolloverSince != null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const current = periodRange({ period, periodAnchor: anchor || undefined }, new Date());
+  const parsedAmount = Number.parseFloat(amount);
+  // Carry-over needs a fixed schedule to count periods on, and an amount to carry.
+  const canRollover = anchor !== '' && Number.isFinite(parsedAmount) && parsedAmount > 0;
+  const rolloverRestarts =
+    category?.rolloverSince != null && (period !== category.period || (anchor || undefined) !== category.periodAnchor);
 
   function save() {
     if (!name.trim()) return;
-    const budgetAmount = Number.parseFloat(amount);
-    const base = {
-      name: name.trim(),
-      budgetAmount: Number.isFinite(budgetAmount) ? budgetAmount : undefined,
+    const settings = {
+      budgetAmount: Number.isFinite(parsedAmount) ? parsedAmount : undefined,
       period,
       periodAnchor: anchor || undefined,
+    };
+    const base = {
+      name: name.trim(),
+      ...settings,
+      ...nextRolloverFields(category, settings, rollover && canRollover, new Date()),
     };
     if (isEditing) {
       updateCategory({ ...category, ...base });
@@ -124,6 +134,19 @@ export function CategoryForm({
             {cadence(period, anchor)} This period: {formatDayRange(current.start, current.end)}.
           </p>
         </Field>
+        {canRollover && (
+          <div className="flex flex-col gap-1.5">
+            <Toggle
+              checked={rollover}
+              onChange={setRollover}
+              label="Carry over leftovers"
+              description="Overspending comes off the next period; anything left is added to it"
+            />
+            {rollover && rolloverRestarts && (
+              <p className="text-xs text-brass">Changing the period or start date starts the carry-over again from zero.</p>
+            )}
+          </div>
+        )}
         <Button onClick={save} className="mt-1 w-full">
           {isEditing ? 'Save changes' : 'Add category'}
         </Button>
