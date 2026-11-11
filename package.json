@@ -1,7 +1,7 @@
 {
   "name": "moneymap",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Personal finance tracker",
   "author": "Sarvesh Pandit",
   "type": "module",
